@@ -1,0 +1,446 @@
+﻿@model SmartAidNavigator.Web.ViewModels.DeliveryDetailVm
+
+@{
+    ViewData["Title"] = $"Delivery #{Model.DeliveryId}";
+
+    string StatusBadgeClass(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED => "badge-planned",
+            SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED => "badge-routed",
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "badge-transit",
+            SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED => "badge-delivered",
+            SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED => "badge-cancelled",
+            _ => "bg-secondary"
+        };
+    }
+
+    string StatusDisplay(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "In Transit",
+            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(status.ToString().ToLower())
+        };
+    }
+
+    string PriorityBadgeClass(string? priorityName)
+    {
+        return priorityName?.ToUpper() switch
+        {
+            "LOW" => "bg-success",
+            "MEDIUM" => "bg-primary",
+            "HIGH" => "bg-warning text-dark",
+            "CRITICAL" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    var canManage = Model.Status != SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED
+                    && Model.Status != SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED;
+}
+
+<div class="app-page-header">
+    <h2 class="page-title">
+        <i class="fa-solid fa-truck me-2"></i>Delivery #@Model.DeliveryId
+    </h2>
+
+    <div class="d-flex gap-2">
+        @if (Model.Status != SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED
+        && Model.Status != SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED)
+        {
+            <a asp-controller="Delivery"
+               asp-action="Edit"
+               asp-route-id="@Model.DeliveryId"
+               class="btn btn-warning">
+                <i class="fa-solid fa-pen me-1"></i>Edit Delivery
+            </a>
+        }
+
+        <a asp-controller="Delivery" asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue">
+                <i class="fa-solid fa-boxes-stacked"></i>
+            </div>
+            <div>
+                <div class="stat-card-value">@Model.ItemTypeCount</div>
+                <div class="stat-card-label">Item Types</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green">
+                <i class="fa-solid fa-cubes"></i>
+            </div>
+            <div>
+                <div class="stat-card-value">@Model.TotalQuantity</div>
+                <div class="stat-card-label">Total Quantity</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange">
+                <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div>
+                <div class="stat-card-value" style="font-size:1.05rem;">
+                    @(Model.ScheduledDate.HasValue ? Model.ScheduledDate.Value.ToString("dd MMM") : "-")
+                </div>
+                <div class="stat-card-label">Scheduled</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon purple">
+                <i class="fa-solid fa-circle-dot"></i>
+            </div>
+            <div>
+                <div class="stat-card-value" style="font-size:1.05rem;">
+                    @StatusDisplay(Model.Status)
+                </div>
+                <div class="stat-card-label">Current Status</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Delivery Information
+                </span>
+                <span class="badge @StatusBadgeClass(Model.Status)">
+                    @StatusDisplay(Model.Status)
+                </span>
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="text-muted small">NGO</div>
+                        <div class="fw-semibold">@Model.NgoName</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="text-muted small">Shelter</div>
+                        <div class="fw-semibold">@Model.ShelterName</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="text-muted small">Scheduled Date</div>
+                        <div class="fw-semibold">
+                            @(Model.ScheduledDate.HasValue ? Model.ScheduledDate.Value.ToString("dd MMM yyyy") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="text-muted small">Created</div>
+                        <div class="fw-semibold">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="text-muted small">Priority</div>
+                        @if (!string.IsNullOrWhiteSpace(Model.PriorityName))
+                        {
+                            <span class="badge @PriorityBadgeClass(Model.PriorityName)">
+                                @Model.PriorityName
+                            </span>
+
+                            @if (Model.PriorityScore.HasValue)
+                            {
+                                <div class="text-muted small mt-1">
+                                    Score: @Model.PriorityScore.Value.ToString("N2")
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="fw-semibold">-</div>
+                        }
+                    </div>
+
+                    <div class="col-12">
+                        <div class="text-muted small">Notes</div>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>Delivery Items
+                </span>
+                <span class="badge bg-secondary">@Model.Items.Count item type(s)</span>
+            </div>
+
+            <div class="card-body p-0">
+                @if (Model.Items.Any())
+                {
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Amount</th>
+                                <th>Unit</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold">
+                                            <i class="fa-solid fa-box me-1 text-muted"></i>@item.ItemName
+                                        </div>
+                                        <div class="text-muted small">Item ID: @item.ItemId</div>
+                                    </td>
+
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Quantity</span>
+                                    </td>
+
+                                    <td class="text-muted small">@item.Unit</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-3 text-muted small">
+                        <i class="fa-solid fa-inbox me-1"></i>No items found for this delivery.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Status History
+            </div>
+
+            <div class="card-body p-0">
+                
+                @if (Model.TrackingUpdates.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Note</th>
+                                    <th>Updated At</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach (var tracking in Model.TrackingUpdates)
+                                {
+                                    <tr>
+                                        <td>
+                                            <span class="badge @StatusBadgeClass(tracking.Status)">
+                                                @StatusDisplay(tracking.Status)
+                                            </span>
+                                        </td>
+
+                                        <td style="max-width:420px; word-break:break-word;">
+                                            @(string.IsNullOrWhiteSpace(tracking.Note) ? "-" : tracking.Note)
+                                        </td>
+
+                                        <td class="text-muted small">
+                                            @tracking.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-3 text-muted small">
+                        <i class="fa-solid fa-inbox me-1"></i>No status history yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-house me-2 text-primary"></i>Shelter Details
+            </div>
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="text-muted small">Shelter Name</div>
+                    <div class="fw-semibold">@Model.ShelterName</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-muted small">Phone</div>
+                    <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.ShelterPhone) ? "-" : Model.ShelterPhone)</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="text-muted small">Email</div>
+                    <div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.ShelterEmail) ? "-" : Model.ShelterEmail)</div>
+                </div>
+
+                <div>
+                    <div class="text-muted small">Address</div>
+                    <div class="fw-semibold">
+                        @(string.IsNullOrWhiteSpace(Model.ShelterAddress) ? "-" : Model.ShelterAddress)
+                    </div>
+                    <div class="text-muted small">
+                        @Model.ShelterPostalCode @Model.ShelterCity
+                        @if (!string.IsNullOrWhiteSpace(Model.ShelterState))
+                        {
+                            <span>, @Model.ShelterState</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ImageLink))
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-image me-2 text-primary"></i>
+                    Proof of Delivery
+                </div>
+
+                <div class="card-body">
+                    <a href="@Model.ImageLink" target="_blank">
+                        <img src="@Model.ImageLink"
+                             class="img-fluid rounded border mb-3"
+                             style="width:100%; max-height:400px; object-fit:cover;" />
+                    </a>
+
+                    <a href="@Model.ImageLink"
+                       target="_blank"
+                       class="btn btn-outline-primary w-100">
+                        <i class="fa-solid fa-up-right-from-square me-1"></i>
+                        View Full Size Image
+                    </a>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-sliders me-2 text-primary"></i>Manage Delivery
+            </div>
+
+            <div class="card-body">
+                @if (canManage)
+                {
+                    <form asp-controller="Delivery" asp-action="UpdateStatus" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" name="id" value="@Model.DeliveryId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">New Status</label>
+                            <select name="status" class="form-select">
+                                <option value="PLANNED" selected="@(Model.Status == SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED)">Planned</option>
+                                <option value="ROUTED" selected="@(Model.Status == SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED)">Routed</option>
+                                <option value="IN_TRANSIT" selected="@(Model.Status == SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT)">In Transit</option>
+                                <option value="DELIVERED">Delivered</option>
+                                <option value="CANCELLED">Cancelled</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Note</label>
+                            <textarea name="note" class="form-control" rows="3" placeholder="Optional update note..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Update Status
+                        </button>
+                    </form>
+
+                    <hr />
+
+                    <div class="d-grid gap-2">
+                        <form asp-controller="Delivery" asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.DeliveryId" />
+                            <input type="hidden" name="status" value="IN_TRANSIT" />
+                            <input type="hidden" name="note" value="Marked as in transit from delivery details page." />
+                            <button type="submit" class="btn btn-outline-secondary w-100">
+                                <i class="fa-solid fa-truck-fast me-1"></i>Mark In Transit
+                            </button>
+                        </form>
+
+                        <form asp-controller="Delivery" asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.DeliveryId" />
+                            <input type="hidden" name="status" value="DELIVERED" />
+                            <input type="hidden" name="note" value="Marked as delivered from delivery details page." />
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa-solid fa-check-double me-1"></i>Mark Delivered
+                            </button>
+                        </form>
+
+                        <form asp-controller="Delivery" asp-action="UpdateStatus" method="post"
+                              onsubmit="return confirm('Cancel this delivery?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.DeliveryId" />
+                            <input type="hidden" name="status" value="CANCELLED" />
+                            <input type="hidden" name="note" value="Cancelled from delivery details page." />
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fa-solid fa-ban me-1"></i>Cancel Delivery
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        This delivery is @StatusDisplay(Model.Status). Further updates are disabled.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

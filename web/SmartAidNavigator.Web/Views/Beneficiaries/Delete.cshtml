@@ -1,0 +1,18 @@
+﻿@model SmartAidNavigator.Web.Models.Beneficiary
+@{
+    ViewData["Title"] = "Delete Beneficiary";
+}
+
+<h2>Delete Beneficiary</h2>
+
+<div class="alert alert-warning">
+    Are you sure you want to delete <strong>@(Model.Person?.FullName ?? "Beneficiary")</strong>?
+</div>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="BeneficiaryId" />
+
+    <button class="btn btn-danger" type="submit">Yes, Delete</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+</form>

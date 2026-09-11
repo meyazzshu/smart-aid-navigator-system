@@ -1,0 +1,174 @@
+﻿@using SmartAidNavigator.Web.Models
+@model SmartAidNavigator.Web.Models.DeliveryGroup
+
+@{
+    ViewData["Title"] = "Group Delivery Details";
+}
+
+<div class="app-page-header">
+    <div>
+        <h1>@Model.GroupName</h1>
+        <p class="text-muted mb-0">Grouped from existing deliveries</p>
+    </div>
+    <a asp-action="Index" class="btn btn-outline-secondary">Back</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card primary">
+            <div>
+                <span>Status</span>
+                <h3>@Model.Status</h3>
+            </div>
+            <i class="fa fa-truck"></i>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card blue">
+            <div>
+                <span>Total Stops</span>
+                <h3>@Model.GroupDeliveries.Count</h3>
+            </div>
+            <i class="fa fa-map-marker-alt"></i>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card green">
+            <div>
+                <span>Distance</span>
+                <h3>@(Model.TotalDistanceKm?.ToString("0.00") ?? "-") km</h3>
+            </div>
+            <i class="fa fa-route"></i>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="stat-card orange">
+            <div>
+                <span>ETA</span>
+                <h3>@(Model.TotalEtaMinutes?.ToString() ?? "-") min</h3>
+            </div>
+            <i class="fa fa-clock"></i>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.GoogleMapsUrl))
+{
+    <div class="alert alert-success">
+        Route already optimized.
+        <a href="@Model.GoogleMapsUrl" target="_blank" class="alert-link">Open Google Maps route</a>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        This group will be optimized from the mobile app when NGO staff clicks <strong>Optimize & Navigate</strong>.
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <strong>Grouped Deliveries</strong>
+    </div>
+
+    <div class="card-body">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Delivery</th>
+                    <th>Shelter</th>
+                    <th>Items</th>
+                    <th>Status</th>
+                    <th>Scheduled</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var gd in Model.GroupDeliveries)
+                {
+                    var d = gd.Delivery;
+                    var deliveryItems = d?.DeliveryItems ?? new List<DeliveryItem>();
+
+                    if (d == null)
+                    {
+                        continue;
+                    }
+
+                    <tr>
+                        <td>
+                            @if (gd.OptimizedStopOrder.HasValue)
+                            {
+                                <span class="badge bg-success">#@gd.OptimizedStopOrder</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">#@gd.RequestedStopOrder</span>
+                            }
+                        </td>
+
+                        <td>
+                            <strong>#@d.DeliveryId</strong>
+                        </td>
+
+                        <td>
+                            <strong>@d.Shelter?.ShelterName</strong>
+                            <div class="text-muted small">@d.Shelter?.AddressLine</div>
+                        </td>
+
+                        <td>
+                            @if (deliveryItems.Any())
+                            {
+                                foreach (var item in deliveryItems)
+                                {
+                                    <div>
+                                        @item.Item?.ItemName -
+                                        <strong>@item.Quantity</strong>
+                                        @item.Item?.Unit
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No items yet</span>
+                            }
+                        </td>
+
+                        <td>@d.Status</td>
+
+                        <td>@(d.ScheduledDate?.ToString("yyyy-MM-dd") ?? "-")</td>
+
+                        <td class="text-end">
+                            <a asp-controller="Delivery"
+                               asp-action="Details"
+                               asp-route-id="@d.DeliveryId"
+                               class="btn btn-sm btn-outline-primary">
+                                Manage
+                            </a>
+
+                            <form asp-action="RemoveDelivery"
+                                  method="post"
+                                  class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="groupId" value="@Model.DeliveryGroupId" />
+                                <input type="hidden" name="deliveryId" value="@d.DeliveryId" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

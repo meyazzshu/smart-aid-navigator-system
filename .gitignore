@@ -1,0 +1,79 @@
+# ==========================================
+# Operating System
+# ==========================================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+
+# ==========================================
+# Visual Studio / .NET
+# ==========================================
+
+.vs/
+**/bin/
+**/obj/
+
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET generated files
+appsettings.Development.json
+
+
+# ==========================================
+# Flutter
+# ==========================================
+
+**/.dart_tool/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+
+
+# Android generated files
+**/.gradle/
+**/local.properties
+**/captures/
+
+# iOS generated files
+**/Pods/
+**/.symlinks/
+**/Flutter/ephemeral/
+
+# IDE
+**/.idea/
+**/.vscode/
+
+
+# ==========================================
+# PHP / Composer
+# ==========================================
+
+**/vendor/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+
+# ==========================================
+# Logs
+# ==========================================
+
+*.log
+
+
+# ==========================================
+# Temporary files
+# ==========================================
+
+*.tmp
+*.temp
+*.bak
+*.swp

@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Admin Reports";
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-chart-pie me-2"></i>Admin Reports
+        </h2>
+        <p class="text-muted mb-0">
+            Generate system-wide reports for monitoring and decision making.
+        </p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="SystemSummary">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-gauge-high"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">System Summary</div>
+                <div class="stat-card-label">Users, NGOs, shelters</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="ShelterCapacity">
+            <div class="stat-card-icon teal"><i class="fa-solid fa-house-medical"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Shelter Capacity</div>
+                <div class="stat-card-label">Occupancy monitoring</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="Donation">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Donation Report</div>
+                <div class="stat-card-label">Donation performance</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="Delivery">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-truck"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Delivery Report</div>
+                <div class="stat-card-label">Aid movement status</div>
+            </div>
+        </a>
+    </div>
+</div>

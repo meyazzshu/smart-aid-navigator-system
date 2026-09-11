@@ -1,0 +1,123 @@
+﻿@model SmartAidNavigator.Web.Models.Ngo
+
+@{
+    ViewData["Title"] = "Delete NGO";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title text-danger">
+        <i class="fa-solid fa-triangle-exclamation me-2"></i>Delete NGO
+    </h2>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+<div class="alert alert-danger">
+    <h5 class="alert-heading">
+        <i class="fa-solid fa-skull-crossbones me-1"></i>Critical action
+    </h5>
+
+    <p>
+        You are about to permanently delete this NGO. This can remove related staff links, deliveries,
+        donations, inventory records, shelters, and report history depending on the database relationships.
+    </p>
+
+    <p>
+        If this NGO already has related records, the system will block deletion and you should use Deactivate instead
+        so that reports and history remain valid.
+    </p>
+
+    <p class="mb-0 fw-bold">
+        If you only want to stop this NGO from using the system, use Deactivate instead.
+    </p>
+</div>
+
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        Permanent delete confirmation
+    </div>
+
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">NGO</dt>
+            <dd class="col-sm-9">@Model.NgoName</dd>
+
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@(Model.Email ?? "-")</dd>
+
+            <dt class="col-sm-3">Location</dt>
+            <dd class="col-sm-9">@Model.City, @Model.State</dd>
+        </dl>
+
+        <form asp-action="Delete" method="post" id="dangerDeleteForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="NgoId" />
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="confirmUnderstand">
+                <label class="form-check-label fw-semibold" for="confirmUnderstand">
+                    I understand this will permanently delete records and may remove report history.
+                </label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    Type DELETE to confirm
+                </label>
+                <input type="text" class="form-control" id="deleteConfirmText" autocomplete="off" />
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger" id="deleteBtn" disabled>
+                    <i class="fa-solid fa-trash me-1"></i>Permanently Delete NGO
+                </button>
+
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkbox = document.getElementById('confirmUnderstand');
+            const text = document.getElementById('deleteConfirmText');
+            const btn = document.getElementById('deleteBtn');
+            const form = document.getElementById('dangerDeleteForm');
+
+            function updateButton() {
+                btn.disabled = !(checkbox.checked && text.value.trim() === 'DELETE');
+            }
+
+            checkbox.addEventListener('change', updateButton);
+            text.addEventListener('input', updateButton);
+
+            form.addEventListener('submit', function (e) {
+                const ok = confirm('Final warning: This NGO will be permanently deleted. This cannot be undone. Continue?');
+
+                if (!ok) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

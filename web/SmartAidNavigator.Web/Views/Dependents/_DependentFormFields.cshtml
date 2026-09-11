@@ -1,0 +1,64 @@
+@model SmartAidNavigator.Web.ViewModels.DependentUpsertVm
+@using SmartAidNavigator.Web.Models
+
+<div class="mb-3">
+    <label class="form-label">Full Name</label>
+    <input class="form-control" asp-for="FullName" />
+    <span class="text-danger" asp-validation-for="FullName"></span>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Relationship</label>
+    <select class="form-select" asp-for="RelationshipType">
+        @foreach (var type in RelationshipTypes.Allowed)
+        {
+            <option value="@type">@type</option>
+        }
+    </select>
+    <span class="text-danger" asp-validation-for="RelationshipType"></span>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">IC / Passport (optional)</label>
+    <input class="form-control" asp-for="IcOrPassport" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Phone (optional)</label>
+    <input class="form-control" asp-for="Phone" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Gender (optional)</label>
+    <select class="form-select" asp-for="Gender">
+        <option value="">-- Select --</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+    </select>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Date of Birth (optional)</label>
+    <input class="form-control" asp-for="DateOfBirth" type="date" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Address Line (optional)</label>
+    <input class="form-control" asp-for="AddressLine" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">City (optional)</label>
+    <input class="form-control" asp-for="City" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">State (optional)</label>
+    <input class="form-control" asp-for="State" />
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Postal Code (optional)</label>
+    <input class="form-control" asp-for="PostalCode" />
+</div>

@@ -1,0 +1,446 @@
+﻿@model SmartAidNavigator.Web.ViewModels.DeliveryEditVm
+@using SmartAidNavigator.Web.Models
+
+@{
+    ViewData["Title"] = $"Edit Delivery #{Model.DeliveryId}";
+
+    string StatusDisplay(DeliveryStatus status)
+    {
+        return status switch
+        {
+            DeliveryStatus.IN_TRANSIT => "In Transit",
+            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(status.ToString().ToLower())
+        };
+    }
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-pen-to-square me-2"></i>Edit Delivery #@Model.DeliveryId
+        </h2>
+        <p class="text-muted mb-0">
+            Update delivery details, shelter destination, schedule, status, priority, notes, and items.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-action="Details" asp-route-id="@Model.DeliveryId" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Back to Details
+        </a>
+    </div>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="DeliveryId" />
+    <input type="hidden" asp-for="CreatedAt" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card org-edit-summary-card">
+                <div class="card-body text-center">
+                    <div class="org-detail-avatar mx-auto mb-3">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+
+                    <h4 class="mb-1">Delivery #@Model.DeliveryId</h4>
+                    <div class="text-muted mb-3">@Model.NgoName</div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fa-solid fa-circle-dot me-1"></i>@StatusDisplay(Model.Status)
+                        </span>
+                    </div>
+
+                    <div class="staff-edit-mini-info">
+                        <div>
+                            <i class="fa-solid fa-house-medical me-2 text-primary"></i>
+                            <span>Shelter destination can be changed</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>
+                            <span>Items can be updated</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-map-location-dot me-2 text-primary"></i>
+                            <span>Map previews selected shelter</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Save Changes
+                    </button>
+
+                    <a asp-action="Details" asp-route-id="@Model.DeliveryId" class="btn btn-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Delivery Details
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ShelterId" class="form-label fw-semibold">
+                                <i class="fa-solid fa-house-medical me-1 text-primary"></i>Shelter
+                            </label>
+                            <select asp-for="ShelterId" asp-items="Model.Shelters" class="form-select" id="ShelterId">
+                                <option value="">-- Select Shelter --</option>
+                            </select>
+                            <span asp-validation-for="ShelterId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Status" class="form-label fw-semibold">
+                                <i class="fa-solid fa-circle-dot me-1 text-primary"></i>Status
+                            </label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="PLANNED">Planned</option>
+                                <option value="ROUTED">Routed</option>
+                                <option value="IN_TRANSIT">In Transit</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                            <div class="form-text">
+                                Delivered and Cancelled should be updated from the details page.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ScheduledDate" class="form-label fw-semibold">
+                                <i class="fa-solid fa-calendar-day me-1 text-primary"></i>Scheduled Date
+                            </label>
+                            <input asp-for="ScheduledDate" type="date" class="form-control" />
+                            <span asp-validation-for="ScheduledDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="PriorityId" class="form-label fw-semibold">
+                                <i class="fa-solid fa-triangle-exclamation me-1 text-primary"></i>Priority
+                            </label>
+                            <select asp-for="PriorityId" asp-items="Model.Priorities" class="form-select">
+                                <option value="">-- No Priority --</option>
+                            </select>
+                            <span asp-validation-for="PriorityId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Notes" class="form-label fw-semibold">
+                                <i class="fa-solid fa-note-sticky me-1 text-primary"></i>Notes
+                            </label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Delivery notes..."></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-map-location-dot me-2 text-primary"></i>Shelter Map Preview
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        The map previews the selected shelter. Change the shelter dropdown to update the map.
+                    </div>
+
+                    <div id="deliveryEditMap"
+                         class="org-edit-map"
+                         data-lat="@Model.SelectedShelterLatitude"
+                         data-lng="@Model.SelectedShelterLongitude"
+                         data-title="@Model.SelectedShelterName">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <span>
+                        <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>Delivery Items
+                    </span>
+
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addDeliveryItemBtn">
+                        <i class="fa-solid fa-plus me-1"></i>Add Item
+                    </button>
+                </div>
+
+                <div class="card-body">
+                    <div id="deliveryItemsContainer" class="delivery-edit-items-wrapper">
+                        @for (var i = 0; i < Model.DeliveryItems.Count; i++)
+                        {
+                            <div class="delivery-item-row delivery-edit-item-card">
+                                <div class="delivery-edit-item-main">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fa-solid fa-box me-1 text-primary"></i>Item Name
+                                    </label>
+
+                                    <select name="DeliveryItems[@i].ItemId"
+                                            class="form-select delivery-item-select item-select">
+                                        <option value="">-- Select Item --</option>
+
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            if (Model.DeliveryItems[i].ItemId?.ToString() == item.Value)
+                                            {
+                                                <option value="@item.Value" selected>@item.Text</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="delivery-edit-item-qty">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fa-solid fa-hashtag me-1 text-primary"></i>Amount
+                                    </label>
+
+                                    <input name="DeliveryItems[@i].Quantity"
+                                           value="@Model.DeliveryItems[i].Quantity"
+                                           type="number"
+                                           min="1"
+                                           class="form-control quantity-input" />
+                                </div>
+
+                                <div class="delivery-edit-item-action">
+                                    <label class="form-label fw-semibold invisible">Action</label>
+
+                                    <button type="button" class="btn btn-outline-danger remove-item-btn">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <span asp-validation-for="DeliveryItems" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a asp-action="Details" asp-route-id="@Model.DeliveryId" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const deliveryItems = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Items.Select(x => new { value = x.Value, text = x.Text })
+    ));
+
+        const shelterLocations = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        Model.Shelters.Select(x => new
+        {
+            value = x.Value,
+            text = x.Text
+        })
+    ));
+    </script>
+
+    <script>
+        let deliveryEditMap;
+        let deliveryEditMarker;
+
+        const shelterLocationLookup = {};
+
+        @foreach (var shelter in Model.Shelters)
+        {
+            <text>
+                    shelterLocationLookup["@shelter.Value"] = {
+                        name: "@shelter.Text.Replace("\"", "\\\"")"
+                    };
+            </text>
+        }
+
+        function initDeliveryEditMap() {
+            const mapEl = document.getElementById('deliveryEditMap');
+            const shelterSelect = document.getElementById('ShelterId');
+
+            if (!mapEl) {
+                return;
+            }
+
+            const initialLat = parseFloat(mapEl.dataset.lat);
+            const initialLng = parseFloat(mapEl.dataset.lng);
+
+            const defaultPosition = {
+                lat: isNaN(initialLat) ? 3.1390 : initialLat,
+                lng: isNaN(initialLng) ? 101.6869 : initialLng
+            };
+
+            deliveryEditMap = new google.maps.Map(mapEl, {
+                center: defaultPosition,
+                zoom: isNaN(initialLat) || isNaN(initialLng) ? 7 : 15,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            deliveryEditMarker = new google.maps.Marker({
+                map: deliveryEditMap,
+                position: defaultPosition,
+                title: mapEl.dataset.title || 'Shelter Location'
+            });
+
+            if (shelterSelect) {
+                shelterSelect.addEventListener('change', function () {
+                    const shelterId = this.value;
+
+                    if (!shelterId) {
+                        return;
+                    }
+
+                    fetch(`/Delivery/GetShelterLocation?shelterId=${shelterId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.ok || !data.lat || !data.lng) {
+                                return;
+                            }
+
+                            const position = {
+                                lat: parseFloat(data.lat),
+                                lng: parseFloat(data.lng)
+                            };
+
+                            deliveryEditMap.setCenter(position);
+                            deliveryEditMap.setZoom(15);
+                            deliveryEditMarker.setPosition(position);
+                            deliveryEditMarker.setTitle(data.name || 'Shelter Location');
+                        });
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('deliveryItemsContainer');
+            const addBtn = document.getElementById('addDeliveryItemBtn');
+
+            function buildItemOptions() {
+                return deliveryItems.map(item => `<option value="${item.value}">${item.text}</option>`).join('');
+            }
+
+            function reindexRows() {
+                const rows = Array.from(container.querySelectorAll('.delivery-item-row'));
+
+                rows.forEach((row, index) => {
+                    const itemSelect = row.querySelector('.item-select');
+                    const quantityInput = row.querySelector('.quantity-input');
+
+                    if (itemSelect) {
+                        itemSelect.name = `DeliveryItems[${index}].ItemId`;
+                    }
+
+                    if (quantityInput) {
+                        quantityInput.name = `DeliveryItems[${index}].Quantity`;
+                    }
+                });
+            }
+
+            if (addBtn && container) {
+                addBtn.addEventListener('click', function () {
+                    const index = container.querySelectorAll('.delivery-item-row').length;
+
+                    const row = document.createElement('div');
+                    row.className = 'delivery-item-row delivery-edit-item-card';
+
+                    row.innerHTML = `
+                        <div class="delivery-edit-item-main">
+                            <label class="form-label fw-semibold">
+                                <i class="fa-solid fa-box me-1 text-primary"></i>Item Name
+                            </label>
+
+                            <select name="DeliveryItems[${index}].ItemId"
+                                    class="form-select delivery-item-select item-select">
+                                <option value="">-- Select Item --</option>
+                                ${buildItemOptions()}
+                            </select>
+                        </div>
+
+                        <div class="delivery-edit-item-qty">
+                            <label class="form-label fw-semibold">
+                                <i class="fa-solid fa-hashtag me-1 text-primary"></i>Amount
+                            </label>
+
+                            <input name="DeliveryItems[${index}].Quantity"
+                                    value="1"
+                                    type="number"
+                                    min="1"
+                                    class="form-control quantity-input" />
+                        </div>
+
+                        <div class="delivery-edit-item-action">
+                            <label class="form-label fw-semibold invisible">Action</label>
+
+                            <button type="button" class="btn btn-outline-danger remove-item-btn">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    container.appendChild(row);
+                });
+            }
+
+            if (container) {
+                container.addEventListener('click', function (e) {
+                    const removeBtn = e.target.closest('.remove-item-btn');
+
+                    if (!removeBtn) {
+                        return;
+                    }
+
+                    const rows = container.querySelectorAll('.delivery-item-row');
+
+                    if (rows.length <= 1) {
+                        alert('At least one item row is required.');
+                        return;
+                    }
+
+                    removeBtn.closest('.delivery-item-row').remove();
+                    reindexRows();
+                });
+            }
+        });
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async
+                defer
+                src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&callback=initDeliveryEditMap">
+        </script>
+    }
+    else
+    {
+        <script>
+            console.error('Google Maps API key is missing. Delivery edit map will not load.');
+        </script>
+    }
+}

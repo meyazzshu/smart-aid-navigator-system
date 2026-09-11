@@ -1,0 +1,76 @@
+@* @model SmartAidNavigator.Web.ViewModels.RouteGenerateVm *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Generate Route"; *@
+@* } *@
+
+@* <div class="app-page-header"> *@
+@*     <h2 class="page-title"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Route</h2> *@
+@*     <a asp-action="Index" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back</a> *@
+@* </div> *@
+
+@* @if (!ViewData.ModelState.IsValid) *@
+@* { *@
+@*     <div class="alert alert-danger"> *@
+@*         <ul class="mb-0"> *@
+@*             @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors)) *@
+@*             { *@
+@*                 <li>@err.ErrorMessage</li> *@
+@*             } *@
+@*         </ul> *@
+@*     </div> *@
+@* } *@
+
+@* @if (!Model.AvailableDeliveries.Any()) *@
+@* { *@
+@*     <div class="alert alert-info"><i class="fa-solid fa-circle-info me-2"></i>No planned deliveries available for route generation.</div> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <div class="card"> *@
+@*         <div class="card-header"><i class="fa-solid fa-truck me-2"></i>Select Deliveries to Route</div> *@
+@*         <div class="card-body p-0"> *@
+@*             <form asp-action="Preview" method="post"> *@
+@*                 @Html.AntiForgeryToken() *@
+@*                 <table class="table table-hover mb-0"> *@
+@*                     <thead> *@
+@*                         <tr> *@
+@*                             <th style="width:50px;">Select</th> *@
+@*                             <th><i class="fa-solid fa-hashtag me-1"></i>ID</th> *@
+@*                             <th><i class="fa-solid fa-house me-1"></i>Shelter</th> *@
+@*                             <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th> *@
+@*                             <th><i class="fa-solid fa-star me-1"></i>Priority</th> *@
+@*                             <th><i class="fa-solid fa-calendar me-1"></i>Scheduled</th> *@
+@*                             <th><i class="fa-solid fa-note-sticky me-1"></i>Notes</th> *@
+@*                         </tr> *@
+@*                     </thead> *@
+@*                     <tbody> *@
+@*                         @foreach (var d in Model.AvailableDeliveries) *@
+@*                         { *@
+@*                             <tr> *@
+@*                                 <td> *@
+@*                                     <input type="checkbox" class="form-check-input" name="DeliveryIds" value="@d.DeliveryId" /> *@
+@*                                 </td> *@
+@*                                 <td><strong>#@d.DeliveryId</strong></td> *@
+@*                                 <td>@d.ShelterName</td> *@
+@*                                 <td><span class="badge badge-planned">@d.Status</span></td> *@
+@*                                 <td> *@
+@*                                     @{ *@
+@*                                         var priClass = d.PriorityScore >= 7 ? "priority-high" : (d.PriorityScore >= 4 ? "priority-medium" : "priority-low"); *@
+@*                                     } *@
+@*                                     <span class="@priClass">@d.PriorityScore</span> *@
+@*                                 </td> *@
+@*                                 <td class="text-muted small">@d.ScheduledDateText</td> *@
+@*                                 <td class="text-muted small">@d.Notes</td> *@
+@*                             </tr> *@
+@*                         } *@
+@*                     </tbody> *@
+@*                 </table> *@
+@*                 <div class="p-3"> *@
+@*                     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-map me-1"></i>Generate Preview</button> *@
+@*                     <a asp-action="Index" class="btn btn-secondary ms-2">Cancel</a> *@
+@*                 </div> *@
+@*             </form> *@
+@*         </div> *@
+@*     </div> *@
+@* } *@

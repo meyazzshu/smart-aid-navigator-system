@@ -1,0 +1,439 @@
+﻿@model SmartAidNavigator.Web.ViewModels.UserCreateVm
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Create User Account";
+
+    var roles = ViewBag.Roles as List<SelectListItem> ?? new List<SelectListItem>();
+
+    var malaysiaStates = new[]
+    {
+        "Johor",
+        "Kedah",
+        "Kelantan",
+        "Melaka",
+        "Negeri Sembilan",
+        "Pahang",
+        "Perak",
+        "Perlis",
+        "Pulau Pinang",
+        "Sabah",
+        "Sarawak",
+        "Selangor",
+        "Terengganu",
+        "Kuala Lumpur",
+        "Labuan",
+        "Putrajaya"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-user-plus me-2"></i>Create User Account
+        </h2>
+        <p class="text-muted mb-0">
+            Create a complete user account with role, contact details, and Google-based address selection.
+        </p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card staff-edit-summary-card">
+                <div class="card-body text-center">
+                    <div class="staff-detail-avatar mx-auto mb-3">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+
+                    <h4 class="mb-1">New User Account</h4>
+                    <div class="text-muted mb-3">Administrator-created account</div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fa-solid fa-user-plus me-1"></i>New Account
+                        </span>
+                    </div>
+
+                    <div class="staff-edit-mini-info">
+                        <div>
+                            <i class="fa-solid fa-shield-halved me-2 text-primary"></i>
+                            <span>Assign role and account status</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                            <span>Use Google address search</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Create User
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-user me-2 text-primary"></i>Basic Information
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label fw-semibold">
+                                <i class="fa-solid fa-signature me-1 text-primary"></i>Full Name
+                            </label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>Email
+                            </label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label fw-semibold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>Phone
+                            </label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IcOrPassport" class="form-label fw-semibold">
+                                <i class="fa-solid fa-id-card me-1 text-primary"></i>IC / Passport
+                            </label>
+                            <input asp-for="IcOrPassport" class="form-control" />
+                            <span asp-validation-for="IcOrPassport" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold">
+                                <i class="fa-solid fa-venus-mars me-1 text-primary"></i>Gender
+                            </label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold">
+                                <i class="fa-solid fa-cake-candles me-1 text-primary"></i>Date of Birth
+                            </label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-location-dot me-2 text-primary"></i>Address Information
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Search and select an address from Google to auto-fill address, city, state, and postal code.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-magnifying-glass-location me-1 text-primary"></i>Search Location
+                        </label>
+                        <input type="text"
+                               id="userCreateGoogleLocationSearch"
+                               class="form-control"
+                               placeholder="Search user address, building, street, or area..." />
+                        <div class="form-text">
+                            Example: Kuala Lumpur, Shah Alam, Seremban, or full address.
+                        </div>
+                    </div>
+
+                    <div id="userCreateMap" class="staff-edit-map mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="AddressLine" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map-location-dot me-1 text-primary"></i>Address Line
+                            </label>
+                            <input asp-for="AddressLine" id="AddressLine" class="form-control" />
+                            <span asp-validation-for="AddressLine" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold">
+                                <i class="fa-solid fa-city me-1 text-primary"></i>City
+                            </label>
+                            <input asp-for="City" id="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map me-1 text-primary"></i>State
+                            </label>
+                            <select asp-for="State" id="State" class="form-select">
+                                <option value="">-- Select State --</option>
+                                @foreach (var state in malaysiaStates)
+                                {
+                                    <option value="@state">@state</option>
+                                }
+                            </select>
+                            <span asp-validation-for="State" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PostalCode" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelopes-bulk me-1 text-primary"></i>Postal Code
+                            </label>
+                            <input asp-for="PostalCode" id="PostalCode" class="form-control" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-user-shield me-2 text-primary"></i>Account Access
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="RoleId" class="form-label fw-semibold">
+                                <i class="fa-solid fa-id-badge me-1 text-primary"></i>Role
+                            </label>
+                            <select asp-for="RoleId" asp-items="roles" class="form-select">
+                                <option value="">-- Select Role --</option>
+                            </select>
+                            <span asp-validation-for="RoleId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IsActive" class="form-label fw-semibold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>Account Status
+                            </label>
+                            <select asp-for="IsActive" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive</option>
+                            </select>
+                            <span asp-validation-for="IsActive" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Password" class="form-label fw-semibold">
+                                <i class="fa-solid fa-lock me-1 text-primary"></i>Password
+                            </label>
+                            <input asp-for="Password"
+                                   type="password"
+                                   class="form-control"
+                                   placeholder="Minimum 6 characters" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                            <div class="form-text">
+                                This password will be used for the user to log in.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let userCreateMap;
+        let userCreateMarker;
+        let userCreateAutocomplete;
+
+        function initUserCreateAddressMap() {
+            const mapElement = document.getElementById('userCreateMap');
+            const searchInput = document.getElementById('userCreateGoogleLocationSearch');
+
+            const addressInput = document.getElementById('AddressLine');
+            const cityInput = document.getElementById('City');
+            const stateInput = document.getElementById('State');
+            const postalInput = document.getElementById('PostalCode');
+
+            if (!mapElement || !searchInput) {
+                return;
+            }
+
+            const defaultLocation = {
+                lat: 3.1390,
+                lng: 101.6869
+            };
+
+            userCreateMap = new google.maps.Map(mapElement, {
+                center: defaultLocation,
+                zoom: 12,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            userCreateMarker = new google.maps.Marker({
+                map: userCreateMap,
+                position: defaultLocation,
+                draggable: false
+            });
+
+            userCreateAutocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'my' },
+                fields: ['address_components', 'formatted_address', 'geometry', 'name']
+            });
+
+            userCreateAutocomplete.addListener('place_changed', function () {
+                const place = userCreateAutocomplete.getPlace();
+
+                if (!place.geometry || !place.geometry.location) {
+                    alert('Selected location does not have map coordinates. Please choose another result.');
+                    return;
+                }
+
+                const location = place.geometry.location;
+
+                userCreateMap.setCenter(location);
+                userCreateMap.setZoom(16);
+                userCreateMarker.setPosition(location);
+
+                const parsed = parseUserCreateAddressComponents(place.address_components || []);
+
+                if (addressInput) {
+                    addressInput.value = place.formatted_address || place.name || '';
+                }
+
+                if (cityInput) {
+                    cityInput.value = parsed.city || '';
+                }
+
+                if (stateInput) {
+                    stateInput.value = normalizeMalaysiaStateForUserCreate(parsed.state || '');
+                }
+
+                if (postalInput) {
+                    postalInput.value = parsed.postalCode || '';
+                }
+            });
+        }
+
+        function parseUserCreateAddressComponents(components) {
+            let city = '';
+            let state = '';
+            let postalCode = '';
+
+            components.forEach(function (component) {
+                const types = component.types || [];
+
+                if (types.includes('postal_code')) {
+                    postalCode = component.long_name;
+                }
+
+                if (
+                    types.includes('locality') ||
+                    types.includes('postal_town') ||
+                    types.includes('administrative_area_level_2')
+                ) {
+                    if (!city) {
+                        city = component.long_name;
+                    }
+                }
+
+                if (types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            });
+
+            return {
+                city: city,
+                state: state,
+                postalCode: postalCode
+            };
+        }
+
+        function normalizeMalaysiaStateForUserCreate(state) {
+            const value = (state || '').toLowerCase();
+
+            const map = {
+                'johor': 'Johor',
+                'kedah': 'Kedah',
+                'kelantan': 'Kelantan',
+                'melaka': 'Melaka',
+                'malacca': 'Melaka',
+                'negeri sembilan': 'Negeri Sembilan',
+                'pahang': 'Pahang',
+                'perak': 'Perak',
+                'perlis': 'Perlis',
+                'pulau pinang': 'Pulau Pinang',
+                'penang': 'Pulau Pinang',
+                'sabah': 'Sabah',
+                'sarawak': 'Sarawak',
+                'selangor': 'Selangor',
+                'terengganu': 'Terengganu',
+                'kuala lumpur': 'Kuala Lumpur',
+                'federal territory of kuala lumpur': 'Kuala Lumpur',
+                'wilayah persekutuan kuala lumpur': 'Kuala Lumpur',
+                'labuan': 'Labuan',
+                'putrajaya': 'Putrajaya',
+                'federal territory of putrajaya': 'Putrajaya',
+                'wilayah persekutuan putrajaya': 'Putrajaya'
+            };
+
+            return map[value] || state;
+        }
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async
+                defer
+                src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initUserCreateAddressMap">
+        </script>
+    }
+    else
+    {
+        <script>
+            console.error('Google Maps API key is missing. User create map will not load.');
+        </script>
+    }
+}

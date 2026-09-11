@@ -1,0 +1,616 @@
+﻿@model List<SmartAidNavigator.Web.Models.Shelter>
+
+@{
+    ViewData["Title"] = "Shelters";
+
+    var states = Model
+        .Select(x => x.State)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+
+    var ngoPartners = Model
+        .Select(x => x.Ngo?.NgoName)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-house-circle-check me-2"></i>Shelters</h2>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa-solid fa-plus me-1"></i>Add Shelter
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+<!-- Summary strip -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-house-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count</div>
+                <div class="stat-card-label">Total Shelters</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => x.IsActive)</div>
+                <div class="stat-card-label">Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => !x.IsActive)</div>
+                <div class="stat-card-label">Inactive</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-building-ngo"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Select(x => x.NgoId).Where(x => x.HasValue).Distinct().Count()</div>
+                <div class="stat-card-label">NGOs with Shelters</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shelter-filter-card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Shelters
+    </div>
+
+    <div class="card-body">
+        <div class="shelter-filter-panel">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text"
+                       id="shelterSearchInput"
+                       class="form-control"
+                       placeholder="Search shelter name, NGO, city, state, phone, email, address..." />
+            </div>
+
+            <select id="shelterStatusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <select id="shelterStateFilter" class="form-select">
+                <option value="">All States</option>
+                @foreach (var state in states)
+                {
+                    <option value="@state">@state</option>
+                }
+            </select>
+
+            <select id="shelterNgoFilter" class="form-select">
+                <option value="">All NGO Partners</option>
+                <option value="NO_NGO">No NGO Partner</option>
+                @foreach (var ngoName in ngoPartners)
+                {
+                    <option value="@ngoName">@ngoName</option>
+                }
+            </select>
+
+            <select id="shelterSortSelect" class="form-select">
+                <option value="created-desc" selected>Created: Newest First</option>
+                <option value="created-asc">Created: Oldest First</option>
+                <option value="id-desc">Shelter ID: High to Low</option>
+                <option value="id-asc">Shelter ID: Low to High</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+                <option value="city-asc">City: A to Z</option>
+                <option value="state-asc">State: A to Z</option>
+                <option value="occupancy-desc">Occupancy: High to Low</option>
+                <option value="capacity-desc">Capacity: High to Low</option>
+            </select>
+
+            <button type="button" id="clearShelterFiltersBtn" class="btn btn-outline-secondary">
+                Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2"></i>All Shelters</span>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border">15 records per page</span>
+            <span class="badge bg-secondary">@Model.Count record(s)</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <table class="table table-hover mb-0" id="shelterTable">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-hashtag me-1"></i>ID</th>
+                        <th><i class="fa-solid fa-house me-1"></i>Shelter Name</th>
+                        <th><i class="fa-solid fa-building-ngo me-1"></i>NGO Partner</th>
+                        <th><i class="fa-solid fa-city me-1"></i>City</th>
+                        <th><i class="fa-solid fa-map me-1"></i>State</th>
+                        <th><i class="fa-solid fa-users me-1"></i>Occupancy</th>
+                        <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th>
+                        <th style="width:220px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="shelterTableBody">
+                    @foreach (var s in Model)
+                    {
+                        var statusValue = s.IsActive ? "ACTIVE" : "INACTIVE";
+                        var ngoName = s.Ngo?.NgoName ?? "";
+                        var ngoFilterValue = string.IsNullOrWhiteSpace(ngoName) ? "NO_NGO" : ngoName;
+                        var createdSort = s.CreatedAt.ToString("yyyyMMddHHmmss");
+                        var occupancy = s.CurrentOccupancy;
+                        var capacity = s.Capacity ?? 0;
+
+                        var searchText = $"{s.ShelterId} {s.ShelterName} {ngoName} {s.City} {s.State} {s.Phone} {s.Email} {s.AddressLine} {s.PostalCode} {statusValue}".ToLower();
+
+                        <tr class="shelter-record-row"
+                            data-search="@searchText"
+                            data-shelter-id="@s.ShelterId"
+                            data-name="@((s.ShelterName ?? "").ToLower())"
+                            data-city="@((s.City ?? "").ToLower())"
+                            data-state="@((s.State ?? "").ToLower())"
+                            data-state-value="@(s.State ?? "")"
+                            data-ngo="@ngoFilterValue"
+                            data-status="@statusValue"
+                            data-created="@createdSort"
+                            data-occupancy="@occupancy"
+                            data-capacity="@capacity">
+
+                            <td>
+                                <span class="fw-semibold text-primary">#@s.ShelterId</span>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-house me-1 text-muted"></i>
+                                <strong>@s.ShelterName</strong>
+
+                                @if (!string.IsNullOrWhiteSpace(s.AddressLine))
+                                {
+                                    <div class="text-muted small">@s.AddressLine</div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(s.Phone) || !string.IsNullOrWhiteSpace(s.Email))
+                                {
+                                    <div class="text-muted small">
+                                        @if (!string.IsNullOrWhiteSpace(s.Phone))
+                                        {
+                                            <span><i class="fa-solid fa-phone me-1"></i>@s.Phone</span>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(s.Phone) && !string.IsNullOrWhiteSpace(s.Email))
+                                        {
+                                            <span> · </span>
+                                        }
+
+                                        @if (!string.IsNullOrWhiteSpace(s.Email))
+                                        {
+                                            <span><i class="fa-solid fa-envelope me-1"></i>@s.Email</span>
+                                        }
+                                    </div>
+                                }
+                            </td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ngoName))
+                                {
+                                    <span>@ngoName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No NGO Partner</span>
+                                }
+                            </td>
+
+                            <td>@(s.City ?? "-")</td>
+
+                            <td>@(s.State ?? "-")</td>
+
+                            <td>
+                                <span class="fw-semibold">@s.CurrentOccupancy</span>
+                                <span class="text-muted">/ @(s.Capacity?.ToString() ?? "-")</span>
+
+                                @if (s.Capacity.HasValue && s.Capacity.Value > 0)
+                                {
+                                    var percent = Math.Round((decimal)s.CurrentOccupancy / s.Capacity.Value * 100, 0);
+                                    <div class="text-muted small">@percent% full</div>
+                                }
+                            </td>
+
+                            <td>
+                                @if (s.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    </span>
+                                }
+                                else if (!s.IsActive && s.ApprovedAt == null)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fa-solid fa-clock me-1"></i>Pending Approval
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fa-solid fa-power-off me-1"></i>Deactivated
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a class="btn btn-sm btn-info"
+                                       asp-action="Details"
+                                       asp-route-id="@s.ShelterId"
+                                       title="Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    <a class="btn btn-sm btn-warning"
+                                       asp-action="Edit"
+                                       asp-route-id="@s.ShelterId"
+                                       title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    @if (!s.IsActive && s.ApprovedAt == null)
+                                    {
+                                        <form asp-action="Approve"
+                                              asp-route-id="@s.ShelterId"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="Approve shelter registration">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (!s.IsActive && s.ApprovedAt != null)
+                                    {
+                                        <form asp-action="Reactivate"
+                                              asp-route-id="@s.ShelterId"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Reactivate this shelter? Shelter manager access will be enabled again.');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="Reactivate Shelter">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Deactivate"
+                                              asp-route-id="@s.ShelterId"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Deactivate this shelter? Related shelter manager accounts will also be deactivated, but records will remain for reports.');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-secondary"
+                                                    title="Deactivate Shelter">
+                                                <i class="fa-solid fa-power-off"></i>
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <a class="btn btn-sm btn-danger"
+                                       asp-action="Delete"
+                                       asp-route-id="@s.ShelterId"
+                                       title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="shelter-table-pagination" id="shelterTablePagination">
+                <div class="shelter-table-page-info" id="shelterTablePageInfo">
+                    Showing 0 - 0 of 0 shelters
+                </div>
+
+                <div class="shelter-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="shelterTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="shelter-table-page-number" id="shelterTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="shelterTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 text-center text-muted d-none" id="noShelterSearchResult">
+                <i class="fa-solid fa-search fa-2x mb-2 text-primary"></i>
+                <div class="fw-semibold">No matching shelters found.</div>
+                <div class="small">Try changing your search or filters.</div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No shelters found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const searchInput = document.getElementById('shelterSearchInput');
+            const statusFilter = document.getElementById('shelterStatusFilter');
+            const stateFilter = document.getElementById('shelterStateFilter');
+            const ngoFilter = document.getElementById('shelterNgoFilter');
+            const sortSelect = document.getElementById('shelterSortSelect');
+            const clearBtn = document.getElementById('clearShelterFiltersBtn');
+
+            const tableBody = document.getElementById('shelterTableBody');
+            const rows = Array.from(document.querySelectorAll('tr.shelter-record-row'));
+
+            const pagination = document.getElementById('shelterTablePagination');
+            const pageInfo = document.getElementById('shelterTablePageInfo');
+            const pageNumber = document.getElementById('shelterTablePageNumber');
+            const prevBtn = document.getElementById('shelterTablePrevBtn');
+            const nextBtn = document.getElementById('shelterTableNextBtn');
+            const noResult = document.getElementById('noShelterSearchResult');
+
+            let currentPage = 1;
+            let filteredRows = [...rows];
+
+            function sortRows() {
+                if (!tableBody || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                rows.sort((a, b) => {
+                    const aId = parseInt(a.dataset.shelterId || '0', 10);
+                    const bId = parseInt(b.dataset.shelterId || '0', 10);
+
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+
+                    const aCity = a.dataset.city || '';
+                    const bCity = b.dataset.city || '';
+
+                    const aState = a.dataset.state || '';
+                    const bState = b.dataset.state || '';
+
+                    const aCreated = a.dataset.created || '';
+                    const bCreated = b.dataset.created || '';
+
+                    const aOccupancy = parseInt(a.dataset.occupancy || '0', 10);
+                    const bOccupancy = parseInt(b.dataset.occupancy || '0', 10);
+
+                    const aCapacity = parseInt(a.dataset.capacity || '0', 10);
+                    const bCapacity = parseInt(b.dataset.capacity || '0', 10);
+
+                    switch (mode) {
+                        case 'created-asc':
+                            return aCreated.localeCompare(bCreated);
+
+                        case 'id-desc':
+                            return bId - aId;
+
+                        case 'id-asc':
+                            return aId - bId;
+
+                        case 'name-asc':
+                            return aName.localeCompare(bName) || bId - aId;
+
+                        case 'name-desc':
+                            return bName.localeCompare(aName) || bId - aId;
+
+                        case 'city-asc':
+                            return aCity.localeCompare(bCity) || bId - aId;
+
+                        case 'state-asc':
+                            return aState.localeCompare(bState) || bId - aId;
+
+                        case 'occupancy-desc':
+                            return bOccupancy - aOccupancy || bId - aId;
+
+                        case 'capacity-desc':
+                            return bCapacity - aCapacity || bId - aId;
+
+                        case 'created-desc':
+                        default:
+                            return bCreated.localeCompare(aCreated);
+                    }
+                });
+
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            function filterRows() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const status = statusFilter ? statusFilter.value : '';
+                const state = stateFilter ? stateFilter.value : '';
+                const ngo = ngoFilter ? ngoFilter.value : '';
+
+                filteredRows = rows.filter(row => {
+                    const text = row.dataset.search || '';
+                    const rowStatus = row.dataset.status || '';
+                    const rowState = row.dataset.stateValue || '';
+                    const rowNgo = row.dataset.ngo || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesStatus = !status || rowStatus === status;
+                    const matchesState = !state || rowState === state;
+                    const matchesNgo = !ngo || rowNgo === ngo;
+
+                    return matchesSearch && matchesStatus && matchesState && matchesNgo;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredRows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const visibleSet = new Set(filteredRows.slice(startIndex, endIndex));
+
+                rows.forEach(row => {
+                    row.classList.toggle('d-none', !visibleSet.has(row));
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', total > 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} shelters`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            function refreshTable() {
+                sortRows();
+                filterRows();
+                renderPage();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (stateFilter) {
+                stateFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (ngoFilter) {
+                ngoFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    currentPage = 1;
+                    sortRows();
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (stateFilter) stateFilter.value = '';
+                    if (ngoFilter) ngoFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'created-desc';
+
+                    refreshTable();
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refreshTable();
+        });
+    </script>
+}

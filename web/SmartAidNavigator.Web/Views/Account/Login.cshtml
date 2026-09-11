@@ -1,0 +1,72 @@
+﻿@model SmartAidNavigator.Web.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<div class="app-form-card card">
+    <div class="card-body">
+        <h2 class="page-title mb-3">Login</h2>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger">@Model.ErrorMessage</div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" name="returnUrl" value="@returnUrl" />
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input asp-for="Password" class="form-control" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+
+        @if (TempData["RegisterSuccess"] != null)
+        {
+            <div class="alert alert-success mt-3">
+                <i class="fa-solid fa-circle-check me-1"></i>@TempData["RegisterSuccess"]
+            </div>
+        }
+
+        <div class="mt-4 p-3 rounded border bg-light">
+            <div class="fw-bold text-primary mb-1">
+                Official organization registration
+            </div>
+
+            <div class="text-muted small mb-3">
+                Register here only if you are an NGO representative or shelter/PPS manager requesting official access to SmartAid Navigator.
+                Your account will be reviewed by admin before you can login.
+            </div>
+
+            <div class="d-flex flex-column flex-md-row gap-2">
+                <a asp-controller="OrganizationRegister"
+                   asp-action="Ngo"
+                   class="btn btn-outline-primary">
+                    <i class="fa-solid fa-building-ngo me-1"></i>Register NGO Organization
+                </a>
+
+                <a asp-controller="OrganizationRegister"
+                   asp-action="Shelter"
+                   class="btn btn-outline-primary">
+                    <i class="fa-solid fa-house-circle-check me-1"></i>Register Shelter / PPS
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

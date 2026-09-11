@@ -1,0 +1,319 @@
+﻿@model SmartAidNavigator.Web.ViewModels.ShelterDonationIndexVm
+
+@{
+    ViewData["Title"] = "Manage Donations";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title">
+        <i class="fa-solid fa-hand-holding-dollar me-2"></i>Manage Donations
+    </h2>
+    <span class="text-muted small">
+        <i class="fa-solid fa-house me-1"></i>@Model.ShelterName
+    </span>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterDonations" asp-action="Index" asp-route-status="PENDING" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-clock"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.PendingCount</div>
+                <div class="stat-card-label">Pending</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterDonations" asp-action="Index" asp-route-status="CONFIRMED" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.ConfirmedCount</div>
+                <div class="stat-card-label">Confirmed</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterDonations" asp-action="Index" asp-route-status="COMPLETED" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-check-double"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.CompletedCount</div>
+                <div class="stat-card-label">Completed</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterDonations" asp-action="Index" asp-route-status="CANCELLED" class="stat-card text-decoration-none">
+            <div class="stat-card-icon red"><i class="fa-solid fa-ban"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.CancelledCount</div>
+                <div class="stat-card-label">Cancelled</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Donations
+    </div>
+    <div class="card-body">
+        <form method="get" asp-controller="ShelterDonations" asp-action="Index" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING" selected="@(Model.Status == "PENDING")">Pending</option>
+                    <option value="CONFIRMED" selected="@(Model.Status == "CONFIRMED")">Confirmed</option>
+                    <option value="COMPLETED" selected="@(Model.Status == "COMPLETED")">Completed</option>
+                    <option value="CANCELLED" selected="@(Model.Status == "CANCELLED")">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Donation Type</label>
+                <select name="type" class="form-select">
+                    <option value="">All Types</option>
+                    <option value="ITEM" selected="@(Model.Type == "ITEM")">Item</option>
+                    <option value="MONEY" selected="@(Model.Type == "MONEY")">Money</option>
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
+                </button>
+                <a asp-controller="ShelterDonations" asp-action="Index" class="btn btn-outline-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2 text-primary"></i>Donation Records</span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border">15 records per page</span>
+            <span class="badge bg-secondary">@Model.Donations.Count record(s)</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Donations.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Donor</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Items / Amount</th>
+                        <th>Drop-off</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var d in Model.Donations)
+                    {
+                        var statusClass = d.Status switch
+                        {
+                            "PENDING" => "bg-warning text-dark",
+                            "CONFIRMED" => "bg-primary",
+                            "COMPLETED" => "bg-success",
+                            "CANCELLED" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+
+                        <tr class="donation-record-row">
+                            <td>#@d.DonationId</td>
+                            <td>
+                                <div>@(d.Donor?.Person?.FullName ?? "-")</div>
+                                <div class="text-muted small">@(d.Donor?.Person?.Email ?? "-")</div>
+                            </td>
+                            <td>
+                                @if (d.DonationType == "MONEY")
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-money-bill me-1"></i>Money
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info text-dark">
+                                        <i class="fa-solid fa-box me-1"></i>Item
+                                    </span>
+                                }
+                            </td>
+                            <td><span class="badge @statusClass">@d.Status</span></td>
+                            <td>
+                                @if (d.DonationType == "MONEY")
+                                {
+                                    if (d.Payment != null)
+                                    {
+                                        <span>@d.Payment.Currency @d.Payment.Amount.ToString("N2")</span>
+                                        <div class="text-muted small">@d.Payment.PaymentStatus</div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No payment record</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span>@d.DonationItems.Sum(x => x.Quantity) item(s)</span>
+                                }
+                            </td>
+                            <td>
+                                @if (d.DropoffRequired)
+                                {
+                                    if (d.DropoffConfirmed)
+                                    {
+                                        <span class="badge bg-success">Confirmed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Required</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not required</span>
+                                }
+                            </td>
+                            <td class="text-muted small">@d.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td>
+                                <a asp-controller="ShelterDonations" asp-action="Details" asp-route-id="@d.DonationId" class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-eye me-1"></i>View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="donation-table-pagination" id="donationTablePagination">
+                <div class="donation-table-page-info" id="donationTablePageInfo">
+                    Showing 0 - 0 of 0 donations
+                </div>
+
+                <div class="donation-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="donationTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="donation-table-page-number" id="donationTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="donationTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No donations found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const rows = Array.from(document.querySelectorAll('tr.donation-record-row'));
+            const pagination = document.getElementById('donationTablePagination');
+            const pageInfo = document.getElementById('donationTablePageInfo');
+            const pageNumber = document.getElementById('donationTablePageNumber');
+            const prevBtn = document.getElementById('donationTablePrevBtn');
+            const nextBtn = document.getElementById('donationTableNextBtn');
+
+            let currentPage = 1;
+
+            function renderPage() {
+                const total = rows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+
+                rows.forEach((row, index) => {
+                    const shouldHide = index < startIndex || index >= endIndex;
+                    row.classList.toggle('d-none', shouldHide);
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} donations`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(rows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            renderPage();
+        });
+    </script>
+}

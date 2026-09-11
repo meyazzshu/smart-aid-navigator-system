@@ -1,0 +1,290 @@
+﻿@model SmartAidNavigator.Web.Models.BeneficiaryNeed
+
+@{
+    ViewData["Title"] = "Need Details";
+
+    var priorityClass = Model.Priority switch
+    {
+        "CRITICAL" => "bg-danger",
+        "HIGH" => "bg-danger",
+        "MEDIUM" => "bg-warning text-dark",
+        "LOW" => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    var statusClass = Model.RequestStatus switch
+    {
+        "SUBMITTED" => "bg-warning text-dark",
+        "UNDER_REVIEW" => "bg-info text-dark",
+        "APPROVED" => "bg-primary",
+        "REJECTED" => "bg-danger",
+        "AWAITING_DONATION" => "bg-danger",
+        "READY_FOR_PICKUP" => "bg-success",
+        "FULFILLED" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-hand-holding-heart me-2"></i>Need Details
+        </h2>
+        <p class="text-muted mb-0">Review request status, beneficiary info, stock workflow, and notes.</p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="staff-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-hand-holding-heart"></i>
+                </div>
+
+                <h4 class="mb-1">@(Model.Item?.ItemName ?? "-")</h4>
+
+                <div class="text-muted mb-2">
+                    Need ID: #@Model.NeedId
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge @priorityClass">
+                        <i class="fa-solid fa-arrow-up-wide-short me-1"></i>@Model.Priority
+                    </span>
+
+                    <span class="badge @statusClass ms-1">
+                        @Model.RequestStatus.Replace("_", " ")
+                    </span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-controller="Beneficiaries"
+                       asp-action="Details"
+                       asp-route-id="@Model.BeneficiaryId"
+                       class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-circle-user me-1"></i>View Beneficiary
+                    </a>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.NeedId"
+                       class="btn btn-warning">
+                        <i class="fa-solid fa-pen me-1"></i>Edit Need
+                    </a>
+
+                    @if (Model.RequestStatus == "SUBMITTED")
+                    {
+                        <form asp-action="Review" asp-route-id="@Model.NeedId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="fa-solid fa-magnifying-glass me-1"></i>Move to Review
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.RequestStatus == "SUBMITTED" || Model.RequestStatus == "UNDER_REVIEW")
+                    {
+                        <form asp-action="Approve" asp-route-id="@Model.NeedId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fa-solid fa-check me-1"></i>Approve & Check Stock
+                            </button>
+                        </form>
+
+                        <form asp-action="Reject" asp-route-id="@Model.NeedId" method="post">
+                            @Html.AntiForgeryToken()
+                            <input name="rejectionReason"
+                                   class="form-control mb-2"
+                                   placeholder="Reject reason optional..." />
+
+                            <button type="submit" class="btn btn-outline-danger w-100">
+                                <i class="fa-solid fa-xmark me-1"></i>Reject
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.RequestStatus == "AWAITING_DONATION")
+                    {
+                        <form asp-action="RefreshAvailability" asp-route-id="@Model.NeedId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-success w-100">
+                                <i class="fa-solid fa-boxes-stacked me-1"></i>Check Stock Again
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.RequestStatus == "READY_FOR_PICKUP")
+                    {
+                        <form asp-action="Fulfill" asp-route-id="@Model.NeedId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-hand-holding-heart me-1"></i>Mark Fulfilled
+                            </button>
+                        </form>
+                    }
+
+                    <a asp-action="Delete"
+                       asp-route-id="@Model.NeedId"
+                       class="btn btn-danger">
+                        <i class="fa-solid fa-trash me-1"></i>Delete Need
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-route me-2 text-primary"></i>Status Timeline
+            </div>
+
+            <div class="card-body">
+                @{
+                    var steps = new[]
+                    {
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "APPROVED",
+                "AWAITING_DONATION",
+                "READY_FOR_PICKUP",
+                "FULFILLED"
+                };
+
+                    var currentIndex = Array.IndexOf(steps, Model.RequestStatus);
+                }
+
+                <div class="d-flex flex-wrap gap-2">
+                    @for (var i = 0; i < steps.Length; i++)
+                    {
+                        var step = steps[i];
+                        var done = currentIndex >= 0 && i <= currentIndex;
+                        var cls = done ? "bg-success" : "bg-secondary";
+
+                        <span class="badge @cls p-2">
+                            @step.Replace("_", " ")
+                        </span>
+                    }
+
+                    @if (Model.RequestStatus == "REJECTED")
+                    {
+                        <span class="badge bg-danger p-2">REJECTED</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info me-2 text-primary"></i>Need Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Need ID</div>
+                        <div class="detail-value">#@Model.NeedId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Date Logged</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Beneficiary</div>
+                        <div class="detail-value">@(Model.Beneficiary?.Person?.FullName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Aid Item Needed</div>
+                        <div class="detail-value">@(Model.Item?.ItemName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Category</div>
+                        <div class="detail-value">@(Model.Item?.Category?.CategoryName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Unit</div>
+                        <div class="detail-value">@(Model.Item?.Unit ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Required Quantity</div>
+                        <div class="detail-value">@Model.RequiredQuantity</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value">
+                            <span class="badge @priorityClass">@Model.Priority</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Request Status</div>
+                        <div class="detail-value">
+                            <span class="badge @statusClass">@Model.RequestStatus.Replace("_", " ")</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Reviewed At</div>
+                        <div class="detail-value">
+                            @(Model.ReviewedAt.HasValue ? Model.ReviewedAt.Value.ToString("dd MMM yyyy HH:mm") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Fulfilled At</div>
+                        <div class="detail-value">
+                            @(Model.FulfilledAt.HasValue ? Model.FulfilledAt.Value.ToString("dd MMM yyyy HH:mm") : "-")
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.RejectionReason))
+                    {
+                        <div class="col-12">
+                            <div class="detail-label">Rejection Reason</div>
+                            <div class="detail-value text-danger">
+                                @Model.RejectionReason
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-note-sticky me-2 text-primary"></i>Notes
+            </div>
+
+            <div class="card-body">
+                <div class="detail-value">
+                    @(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

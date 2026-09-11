@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Shelter Reports";
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-chart-pie me-2"></i>Shelter Reports
+        </h2>
+        <p class="text-muted mb-0">
+            Generate reports for shelter inventory, beneficiaries, aid needs, and received aid.
+        </p>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="Inventory">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-warehouse"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Inventory Report</div>
+                <div class="stat-card-label">Stock monitoring</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="Beneficiary">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Beneficiary Report</div>
+                <div class="stat-card-label">Registered people</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="BeneficiaryNeeds">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-hand-holding-heart"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Needs Report</div>
+                <div class="stat-card-label">Aid request status</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <a class="stat-card text-decoration-none" asp-action="IncomingReceivedAid">
+            <div class="stat-card-icon green"><i class="fa-solid fa-truck-ramp-box"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:1rem;">Incoming Aid</div>
+                <div class="stat-card-label">Received deliveries</div>
+            </div>
+        </a>
+    </div>
+</div>

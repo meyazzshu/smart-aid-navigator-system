@@ -1,0 +1,553 @@
+﻿@model IEnumerable<SmartAidNavigator.Web.Models.DeliveryGroup>
+
+@{
+    ViewData["Title"] = "Group Deliveries";
+
+    var groups = Model?.ToList() ?? new List<SmartAidNavigator.Web.Models.DeliveryGroup>();
+
+    var totalGroups = groups.Count;
+    var plannedCount = groups.Count(g => g.Status.ToString() == "PLANNED");
+    var routedCount = groups.Count(g => g.Status.ToString() == "ROUTED");
+    var inTransitCount = groups.Count(g => g.Status.ToString() == "IN_TRANSIT");
+    var deliveredCount = groups.Count(g => g.Status.ToString() == "DELIVERED");
+}
+
+<div class="app-page-header">
+    <div>
+        <h1>Group Deliveries</h1>
+        <p class="text-muted mb-0">
+            Manage grouped deliveries and optimized multi-stop delivery routes.
+        </p>
+    </div>
+
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa fa-plus-circle me-1"></i>
+        Create Group Delivery
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <button type="button"
+                class="group-summary-card primary group-stat-filter-btn"
+                data-status="">
+            <div class="group-summary-icon">
+                <i class="fa fa-layer-group"></i>
+            </div>
+            <div>
+                <span>Total Groups</span>
+                <strong>@totalGroups</strong>
+            </div>
+        </button>
+    </div>
+
+    <div class="col-md-3">
+        <button type="button"
+                class="group-summary-card secondary group-stat-filter-btn"
+                data-status="PLANNED">
+            <div class="group-summary-icon">
+                <i class="fa fa-clipboard-list"></i>
+            </div>
+            <div>
+                <span>Planned</span>
+                <strong>@plannedCount</strong>
+            </div>
+        </button>
+    </div>
+
+    <div class="col-md-3">
+        <button type="button"
+                class="group-summary-card blue group-stat-filter-btn"
+                data-status="ROUTED">
+            <div class="group-summary-icon">
+                <i class="fa fa-route"></i>
+            </div>
+            <div>
+                <span>Routed</span>
+                <strong>@routedCount</strong>
+            </div>
+        </button>
+    </div>
+
+    <div class="col-md-3">
+        <button type="button"
+                class="group-summary-card orange group-stat-filter-btn"
+                data-status="IN_TRANSIT">
+            <div class="group-summary-icon">
+                <i class="fa fa-truck"></i>
+            </div>
+            <div>
+                <span>In Transit</span>
+                <strong>@inTransitCount</strong>
+            </div>
+        </button>
+    </div>
+</div>
+
+<div class="card group-index-card">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <div>
+            <i class="fa fa-list me-2"></i>
+            Group Delivery Records
+        </div>
+
+        <span class="badge bg-light text-dark border">
+            15 records per page
+        </span>
+    </div>
+
+    <div class="card-body">
+        <div class="group-filter-panel">
+            <div class="input-group group-search-box">
+                <span class="input-group-text">
+                    <i class="fa fa-search"></i>
+                </span>
+                <input type="text"
+                       class="form-control"
+                       id="groupSearchInput"
+                       placeholder="Search group name, status, assigned staff, delivery ID..." />
+            </div>
+
+            <select class="form-select group-filter-select" id="groupStatusFilter">
+                <option value="">All Status</option>
+                <option value="PLANNED">Planned</option>
+                <option value="ROUTED">Routed</option>
+                <option value="IN_TRANSIT">In Transit</option>
+                <option value="DELIVERED">Delivered</option>
+                <option value="CANCELLED">Cancelled</option>
+            </select>
+
+            <select class="form-select group-filter-select" id="groupAssignedFilter">
+                <option value="">All Assigned Staff</option>
+                <option value="UNASSIGNED">Unassigned</option>
+
+                @{
+                    var assignedNames = groups
+                    .Select(g => g.AssignedUser?.Person?.FullName)
+                    .Where(x => !string.IsNullOrWhiteSpace(x))
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
+                }
+
+                @foreach (var name in assignedNames)
+                {
+                    <option value="@name">@name</option>
+                }
+            </select>
+
+            <select class="form-select group-filter-select" id="groupSortSelect">
+                <option value="created-desc" selected>Created: Newest First</option>
+                <option value="created-asc">Created: Oldest First</option>
+                <option value="id-desc">Group ID: High to Low</option>
+                <option value="id-asc">Group ID: Low to High</option>
+                <option value="name-asc">Group Name: A to Z</option>
+                <option value="name-desc">Group Name: Z to A</option>
+                <option value="stops-desc">Stops: High to Low</option>
+                <option value="stops-asc">Stops: Low to High</option>
+            </select>
+
+            <button type="button" class="btn btn-outline-secondary" id="clearGroupFiltersBtn">
+                Clear
+            </button>
+        </div>
+
+        @if (!groups.Any())
+        {
+            <div class="empty-group-state">
+                <i class="fa fa-layer-group"></i>
+                <h5>No group deliveries yet</h5>
+                <p>Create a group delivery from existing planned deliveries.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    Create Group Delivery
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="group-record-list" id="groupRecordList">
+                @foreach (var group in groups)
+                {
+                    var status = group.Status.ToString();
+                    var statusLabel = status == "IN_TRANSIT" ? "IN TRANSIT" : status;
+                    var statusClass = status switch
+                    {
+                        "ROUTED" => "badge-routed",
+                        "IN_TRANSIT" => "badge-transit",
+                        "DELIVERED" => "badge-delivered",
+                        "CANCELLED" => "badge-cancelled",
+                        _ => "badge-planned"
+                    };
+
+                    var assignedName = group.AssignedUser?.Person?.FullName ?? "Unassigned";
+                    var assignedFilterValue = group.AssignedUser?.Person?.FullName ?? "UNASSIGNED";
+                    var stopCount = group.GroupDeliveries?.Count ?? 0;
+                    var createdSort = group.CreatedAt.ToString("yyyyMMddHHmmss");
+                    var createdText = group.CreatedAt.ToString("yyyy-MM-dd HH:mm");
+                    var scheduledText = group.ScheduledDate?.ToString("yyyy-MM-dd") ?? "Not scheduled";
+                    var searchText = $"{group.DeliveryGroupId} {group.GroupName} {statusLabel} {assignedName} {scheduledText} {createdText}".ToLower();
+
+                    <div class="group-record-card"
+                         data-search="@searchText"
+                         data-status="@status"
+                         data-assigned="@assignedFilterValue"
+                         data-group-id="@group.DeliveryGroupId"
+                         data-name="@group.GroupName.ToLower()"
+                         data-created="@createdSort"
+                         data-stops="@stopCount">
+
+                        <div class="group-record-status-top">
+                            <span class="badge @statusClass">
+                                @statusLabel
+                            </span>
+                        </div>
+
+                        <div class="group-record-icon">
+                            <i class="fa fa-route"></i>
+                        </div>
+
+                        <div class="group-record-main">
+                            <div class="group-record-top">
+                                <div>
+                                    <div class="group-record-id">
+                                        Group #@group.DeliveryGroupId
+                                    </div>
+                                    <h5>@group.GroupName</h5>
+                                </div>
+                            </div>
+
+                            <div class="group-record-meta">
+                                <span>
+                                    <i class="fa fa-map-marker-alt"></i>
+                                    @stopCount stop(s)
+                                </span>
+
+                                <span>
+                                    <i class="fa fa-user"></i>
+                                    @assignedName
+                                </span>
+
+                                <span>
+                                    <i class="fa fa-calendar-alt"></i>
+                                    Scheduled: @scheduledText
+                                </span>
+
+                                <span>
+                                    <i class="fa fa-clock"></i>
+                                    Created: @createdText
+                                </span>
+                            </div>
+
+                            <div class="group-record-stats">
+                                <span>
+                                    <i class="fa fa-road"></i>
+                                    @(group.TotalDistanceKm?.ToString("0.00") ?? "-") km
+                                </span>
+
+                                <span>
+                                    <i class="fa fa-hourglass-half"></i>
+                                    @(group.TotalEtaMinutes?.ToString() ?? "-") min
+                                </span>
+
+                                <span>
+                                    <i class="fa fa-bolt"></i>
+                                    @(group.OptimizedAt.HasValue ? $"Optimized {group.OptimizedAt.Value:yyyy-MM-dd HH:mm}" : "Not optimized")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="group-record-actions">
+                            @if (!string.IsNullOrWhiteSpace(group.GoogleMapsUrl))
+                            {
+                                <a href="@group.GoogleMapsUrl"
+                                   target="_blank"
+                                   class="btn btn-sm btn-outline-success">
+                                    <i class="fa fa-map me-1"></i>
+                                    Maps
+                                </a>
+                            }
+
+                            <a asp-action="Details"
+                               asp-route-id="@group.DeliveryGroupId"
+                               class="btn btn-sm btn-primary">
+                                <i class="fa fa-eye me-1"></i>
+                                View
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="group-pagination-bar" id="groupPaginationBar">
+                <div class="group-page-info" id="groupPageInfo">
+                    Showing 0 - 0 of 0 groups
+                </div>
+
+                <div class="group-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="groupPrevPageBtn">
+                        <i class="fa fa-chevron-left me-1"></i>
+                        Previous
+                    </button>
+
+                    <span class="group-page-number" id="groupPageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="groupNextPageBtn">
+                        Next
+                        <i class="fa fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="empty-group-state d-none" id="noGroupSearchResult">
+                <i class="fa fa-search"></i>
+                <h5>No matching group deliveries</h5>
+                <p>Try changing your search or filters.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const searchInput = document.getElementById('groupSearchInput');
+            const statusFilter = document.getElementById('groupStatusFilter');
+            const assignedFilter = document.getElementById('groupAssignedFilter');
+            const sortSelect = document.getElementById('groupSortSelect');
+            const clearBtn = document.getElementById('clearGroupFiltersBtn');
+            const statFilterBtns = Array.from(document.querySelectorAll('.group-stat-filter-btn'));
+
+            const list = document.getElementById('groupRecordList');
+            const cards = Array.from(document.querySelectorAll('.group-record-card'));
+
+            const paginationBar = document.getElementById('groupPaginationBar');
+            const pageInfo = document.getElementById('groupPageInfo');
+            const pageNumber = document.getElementById('groupPageNumber');
+            const prevBtn = document.getElementById('groupPrevPageBtn');
+            const nextBtn = document.getElementById('groupNextPageBtn');
+            const noResult = document.getElementById('noGroupSearchResult');
+
+            let currentPage = 1;
+            let filteredCards = [...cards];
+
+            function sortCards() {
+                if (!list || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                cards.sort((a, b) => {
+                    const aId = parseInt(a.dataset.groupId || '0', 10);
+                    const bId = parseInt(b.dataset.groupId || '0', 10);
+
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+
+                    const aCreated = a.dataset.created || '';
+                    const bCreated = b.dataset.created || '';
+
+                    const aStops = parseInt(a.dataset.stops || '0', 10);
+                    const bStops = parseInt(b.dataset.stops || '0', 10);
+
+                    switch (mode) {
+                        case 'created-asc':
+                            return aCreated.localeCompare(bCreated);
+
+                        case 'id-desc':
+                            return bId - aId;
+
+                        case 'id-asc':
+                            return aId - bId;
+
+                        case 'name-asc':
+                            return aName.localeCompare(bName) || bId - aId;
+
+                        case 'name-desc':
+                            return bName.localeCompare(aName) || bId - aId;
+
+                        case 'stops-desc':
+                            return bStops - aStops || bId - aId;
+
+                        case 'stops-asc':
+                            return aStops - bStops || bId - aId;
+
+                        case 'created-desc':
+                        default:
+                            return bCreated.localeCompare(aCreated);
+                    }
+                });
+
+                cards.forEach(card => list.appendChild(card));
+            }
+
+            function filterCards() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const status = statusFilter ? statusFilter.value : '';
+                const assigned = assignedFilter ? assignedFilter.value : '';
+
+                statFilterBtns.forEach(btn => {
+                    const btnStatus = btn.dataset.status || '';
+                    btn.classList.toggle('active', btnStatus === status);
+                });
+
+                filteredCards = cards.filter(card => {
+                    const text = card.dataset.search || '';
+                    const cardStatus = card.dataset.status || '';
+                    const cardAssigned = card.dataset.assigned || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesStatus = !status || cardStatus === status;
+                    const matchesAssigned = !assigned || cardAssigned === assigned;
+
+                    return matchesSearch && matchesStatus && matchesAssigned;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredCards.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const visibleSet = new Set(filteredCards.slice(startIndex, endIndex));
+
+                cards.forEach(card => {
+                    card.classList.toggle('d-none', !visibleSet.has(card));
+                });
+
+                const hasResults = total > 0;
+
+                if (paginationBar) {
+                    paginationBar.classList.toggle('d-none', !hasResults);
+                }
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', hasResults);
+                }
+
+                if (pageInfo) {
+                    const from = hasResults ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} groups`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            function refreshList() {
+                sortCards();
+                filterCards();
+                renderPage();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterCards();
+                    renderPage();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function () {
+                    filterCards();
+                    renderPage();
+                });
+            }
+
+            if (assignedFilter) {
+                assignedFilter.addEventListener('change', function () {
+                    filterCards();
+                    renderPage();
+                });
+            }
+
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    currentPage = 1;
+                    sortCards();
+                    filterCards();
+                    renderPage();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (assignedFilter) assignedFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'created-desc';
+
+                    refreshList();
+                });
+            }
+
+            statFilterBtns.forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const status = this.dataset.status || '';
+
+                    if (statusFilter) {
+                        statusFilter.value = status;
+                    }
+
+                    filterCards();
+                    renderPage();
+                });
+            });
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredCards.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refreshList();
+        });
+    </script>
+}

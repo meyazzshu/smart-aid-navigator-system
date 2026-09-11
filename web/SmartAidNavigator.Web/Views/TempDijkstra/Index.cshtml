@@ -1,0 +1,280 @@
+﻿@* @model SmartAidNavigator.Web.Controllers.TempDijkstraVm *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Dijkstra Route Prototype"; *@
+
+@*     var nodesJson = System.Text.Json.JsonSerializer.Serialize( *@
+@*         Model.Nodes.Select(x => new *@
+@*         { *@
+@*             id = x.NodeId, *@
+@*             name = x.NodeName, *@
+@*             lat = x.Latitude, *@
+@*             lng = x.Longitude *@
+@*         }) *@
+@*     ); *@
+
+@*     var edgesJson = System.Text.Json.JsonSerializer.Serialize( *@
+@*         Model.Edges.Select(x => new *@
+@*         { *@
+@*             id = x.EdgeId, *@
+@*             from = x.FromNodeId, *@
+@*             to = x.ToNodeId, *@
+@*             distance = x.DistanceKm, *@
+@*             eta = x.EstimatedMinutes *@
+@*         }) *@
+@*     ); *@
+
+@*     var pathJson = System.Text.Json.JsonSerializer.Serialize( *@
+@*         Model.PathNodes.Select(x => new *@
+@*         { *@
+@*             id = x.NodeId, *@
+@*             name = x.NodeName, *@
+@*             lat = x.Latitude, *@
+@*             lng = x.Longitude *@
+@*         }) *@
+@*     ); *@
+@* } *@
+
+@* @* <!DOCTYPE html> *@ 
+@* @* <html> *@ 
+@* @* <head> *@ 
+@*     <meta charset="utf-8" /> *@
+@*     <title>Temporary Dijkstra Route Generation</title> *@
+
+@*     <link rel="stylesheet" *@
+@*           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> *@
+
+@*     <style> *@
+@*         body { *@
+@*             margin: 0; *@
+@*             font-family: Arial, sans-serif; *@
+@*             background: #f3f3f3; *@
+@*             color: #222; *@
+@*         } *@
+
+@*         .top { *@
+@*             padding: 14px; *@
+@*             background: #ddd; *@
+@*             border-bottom: 2px solid #aaa; *@
+@*         } *@
+
+@*         h2 { *@
+@*             margin: 0 0 6px 0; *@
+@*             font-size: 22px; *@
+@*         } *@
+
+@*         .subtitle { *@
+@*             font-size: 13px; *@
+@*             color: #555; *@
+@*         } *@
+
+@*         .panel { *@
+@*             padding: 12px; *@
+@*             background: white; *@
+@*             border-bottom: 1px solid #ccc; *@
+@*         } *@
+
+@*         .form-row { *@
+@*             display: flex; *@
+@*             gap: 10px; *@
+@*             align-items: end; *@
+@*             flex-wrap: wrap; *@
+@*         } *@
+
+@*         label { *@
+@*             display: block; *@
+@*             font-size: 12px; *@
+@*             font-weight: bold; *@
+@*             margin-bottom: 4px; *@
+@*         } *@
+
+@*         select, button { *@
+@*             padding: 7px 9px; *@
+@*             border: 1px solid #888; *@
+@*             background: white; *@
+@*         } *@
+
+@*         button { *@
+@*             background: #2b6cb0; *@
+@*             color: white; *@
+@*             cursor: pointer; *@
+@*         } *@
+
+@*         .result { *@
+@*             margin-top: 10px; *@
+@*             padding: 10px; *@
+@*             background: #f7f7f7; *@
+@*             border: 1px dashed #aaa; *@
+@*             font-size: 14px; *@
+@*         } *@
+
+@*         .warning { *@
+@*             color: #b00020; *@
+@*             font-weight: bold; *@
+@*         } *@
+
+@*         #map { *@
+@*             height: 560px; *@
+@*             width: 100%; *@
+@*         } *@
+
+@*         .route-box { *@
+@*             font-size: 13px; *@
+@*             margin-top: 6px; *@
+@*             color: #333; *@
+@*         } *@
+
+@*         .small-note { *@
+@*             font-size: 12px; *@
+@*             color: #777; *@
+@*             margin-top: 8px; *@
+@*         } *@
+@*     </style> *@
+@* @* </head> *@ 
+
+@* @* <body> *@ 
+@*     <div class="top"> *@
+@*         <h2>Temporary Route Generation Page - Dijkstra Algorithm</h2> *@
+@*         <div class="subtitle"> *@
+@*             Early phase prototype page. No sidebar, no system layout, no final UI design. *@
+@*         </div> *@
+@*     </div> *@
+
+@*     <div class="panel"> *@
+@*         <form method="get" action="/TempDijkstra/Index"> *@
+@*             <div class="form-row"> *@
+@*                 <div> *@
+@*                     <label>Origin Node</label> *@
+@*                     <select name="fromNodeId"> *@
+@*                         @foreach (var node in Model.Nodes) *@
+@*                         { *@
+@*                             <option value="@node.NodeId" selected="@(node.NodeId == Model.FromNodeId)"> *@
+@*                                 @node.NodeId - @node.NodeName *@
+@*                             </option> *@
+@*                         } *@
+@*                     </select> *@
+@*                 </div> *@
+
+@*                 <div> *@
+@*                     <label>Destination Node</label> *@
+@*                     <select name="toNodeId"> *@
+@*                         @foreach (var node in Model.Nodes) *@
+@*                         { *@
+@*                             <option value="@node.NodeId" selected="@(node.NodeId == Model.ToNodeId)"> *@
+@*                                 @node.NodeId - @node.NodeName *@
+@*                             </option> *@
+@*                         } *@
+@*                     </select> *@
+@*                 </div> *@
+
+@*                 <div> *@
+@*                     <button type="submit">Generate Route</button> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </form> *@
+
+@*         <div class="result"> *@
+@*             @if (!string.IsNullOrWhiteSpace(Model.Error)) *@
+@*             { *@
+@*                 <div class="warning">@Model.Error</div> *@
+@*             } *@
+@*             else *@
+@*             { *@
+@*                 <div><b>Algorithm:</b> Dijkstra Shortest Path</div> *@
+@*                 <div><b>Total Distance:</b> @Model.TotalDistanceKm.ToString("N2") km</div> *@
+@*                 <div><b>Estimated Time:</b> @Model.TotalEtaMinutes minutes</div> *@
+
+@*                 <div class="route-box"> *@
+@*                     <b>Generated Path:</b> *@
+@*                     @string.Join(" → ", Model.PathNodes.Select(x => x.NodeName)) *@
+@*                 </div> *@
+@*             } *@
+
+@*             <div class="small-note"> *@
+@*                 This screen is intentionally simple for early development evidence screenshot. *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+
+@*     <div id="map"></div> *@
+
+@*     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> *@
+
+@*     <script> *@
+@*         const nodes = @Html.Raw(nodesJson); *@
+@*         const edges = @Html.Raw(edgesJson); *@
+@*         const pathNodes = @Html.Raw(pathJson); *@
+@*         const map = L.map('map').setView([3.1078, 101.6689], 13); *@
+
+@*         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { *@
+@*             maxZoom: 19, *@
+@*             attribution: 'OpenStreetMap' *@
+@*         }).addTo(map); *@
+
+@*         function findNode(id) { *@
+@*             return nodes.find(n => n.id === id); *@
+@*         } *@
+
+@*         // Draw all graph edges in grey *@
+@*         edges.forEach(edge => { *@
+@*             const from = findNode(edge.from); *@
+@*             const to = findNode(edge.to); *@
+
+@*             if (!from || !to) return; *@
+
+@*             L.polyline( *@
+@*                 [ *@
+@*                     [from.lat, from.lng], *@
+@*                     [to.lat, to.lng] *@
+@*                 ], *@
+@*                 { *@
+@*                     color: '#999', *@
+@*                     weight: 3, *@
+@*                     opacity: 0.45, *@
+@*                     dashArray: '6, 6' *@
+@*                 } *@
+@*             ).addTo(map).bindPopup( *@
+@*                 `Edge ${edge.id}<br>${edge.distance} km<br>${edge.eta} minutes` *@
+@*             ); *@
+@*         }); *@
+
+@*         // Draw route path in blue *@
+@*         if (pathNodes.length > 0) { *@
+@*             const routeLatLngs = pathNodes.map(n => [n.lat, n.lng]); *@
+
+@*             L.polyline(routeLatLngs, { *@
+@*                 color: '#0057d9', *@
+@*                 weight: 7, *@
+@*                 opacity: 0.9 *@
+@*             }).addTo(map).bindPopup('Generated Dijkstra Route'); *@
+
+@*             map.fitBounds(routeLatLngs, { *@
+@*                 padding: [40, 40] *@
+@*             }); *@
+@*         } *@
+
+@*         // Draw nodes *@
+@*         nodes.forEach(node => { *@
+@*             const isPathNode = pathNodes.some(p => p.id === node.id); *@
+
+@*             const marker = L.circleMarker([node.lat, node.lng], { *@
+@*                 radius: isPathNode ? 9 : 7, *@
+@*                 color: isPathNode ? '#0057d9' : '#333', *@
+@*                 fillColor: isPathNode ? '#0057d9' : '#fff', *@
+@*                 fillOpacity: 1, *@
+@*                 weight: 3 *@
+@*             }).addTo(map); *@
+
+@*             marker.bindPopup( *@
+@*                 `<b>${node.nodeName || node.name}</b><br>Node ID: ${node.id}<br>${node.lat}, ${node.lng}` *@
+@*             ); *@
+
+@*             marker.bindTooltip(node.name, { *@
+@*                 permanent: true, *@
+@*                 direction: 'top', *@
+@*                 offset: [0, -10] *@
+@*             }); *@
+@*         }); *@
+@*     </script> *@
+@* @* </body> *@ 
+@* @* </html> *@ 

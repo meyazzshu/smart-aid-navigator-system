@@ -1,0 +1,314 @@
+@model SmartAidNavigator.Web.ViewModels.DeliveryCreateVm
+
+@{
+    ViewData["Title"] = "Create Delivery";
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-truck me-2"></i>Create Delivery
+        </h2>
+        <p class="text-muted mb-0">Create one delivery with one or more aid items.</p>
+    </div>
+
+    <a class="btn btn-secondary" asp-action="Index">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="delivery-create-shell">
+    <form asp-action="Create" asp-controller="Delivery" method="post" id="deliveryCreateForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="BeneficiaryNeedId" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-3"></div>
+
+        @if (Model.BeneficiaryNeedId.HasValue)
+        {
+            <div class="alert alert-info">
+                <i class="fa-solid fa-hand-holding-heart me-1"></i>
+                This delivery is being created from beneficiary need
+                <strong>#@Model.BeneficiaryNeedId</strong>.
+            </div>
+        }
+
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="card delivery-create-card sticky-lg-top">
+                    <div class="card-header">
+                        <i class="fa-solid fa-circle-info me-2"></i>Delivery Information
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="NgoId" class="form-label fw-semibold">NGO</label>
+                            <select asp-for="NgoId" asp-items="Model.Ngos" class="form-select" disabled>
+                            </select>
+                            <input type="hidden" asp-for="NgoId" />
+                            <span asp-validation-for="NgoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ShelterId" class="form-label fw-semibold">Shelter</label>
+                            <select asp-for="ShelterId" asp-items="Model.Shelters" class="form-select">
+                                <option value="">-- Select Shelter --</option>
+                            </select>
+                            <span asp-validation-for="ShelterId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ScheduledDate" class="form-label fw-semibold">Scheduled Date</label>
+                            <input asp-for="ScheduledDate" class="form-control" type="date" />
+                            <span asp-validation-for="ScheduledDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label fw-semibold">Notes</label>
+                            <textarea asp-for="Notes"
+                                      class="form-control"
+                                      rows="4"
+                                      placeholder="Optional delivery notes"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+
+                        <div class="delivery-create-summary">
+                            <div>
+                                <span>Item Rows</span>
+                                <strong id="deliveryItemRowCount">0</strong>
+                            </div>
+                            <div>
+                                <span>Total Qty</span>
+                                <strong id="deliveryTotalQuantity">0</strong>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Create Delivery
+                        </button>
+
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card delivery-items-card">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <span>
+                            <i class="fa-solid fa-boxes-stacked me-2"></i>Delivery Items
+                        </span>
+
+                        <button type="button" class="btn btn-sm btn-primary" id="addDeliveryItemBtn">
+                            <i class="fa-solid fa-plus me-1"></i>Add Item
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+                        <span asp-validation-for="DeliveryItems" class="text-danger d-block mb-2"></span>
+
+                        @if (!Model.Items.Any())
+                        {
+                            <div class="alert alert-warning">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                Your NGO has no available inventory items. Please add stock before creating a delivery.
+                            </div>
+                        }
+
+                        <div class="delivery-item-list" id="deliveryItemList">
+                            @for (var i = 0; i < Model.DeliveryItems.Count; i++)
+                            {
+                                <div class="delivery-item-row">
+                                    <div class="delivery-item-row-number">
+                                        @(i + 1)
+                                    </div>
+
+                                    <div class="delivery-item-fields">
+                                        <div>
+                                            <label class="form-label fw-semibold">Item</label>
+                                            <select name="DeliveryItems[@i].ItemId" class="form-select delivery-item-select">
+                                                <option value="">-- Select Item --</option>
+                                                @foreach (var item in Model.Items)
+                                                {
+                                                    <option value="@item.Value" selected="@(Model.DeliveryItems[i].ItemId?.ToString() == item.Value)">
+                                                        @item.Text
+                                                    </option>
+                                                }
+                                            </select>
+                                            <span asp-validation-for="DeliveryItems[i].ItemId" class="text-danger"></span>
+                                        </div>
+
+                                        <div>
+                                            <label class="form-label fw-semibold">Quantity</label>
+                                            <input name="DeliveryItems[@i].Quantity"
+                                                   value="@Model.DeliveryItems[i].Quantity"
+                                                   class="form-control delivery-quantity-input"
+                                                   type="number"
+                                                   min="1" />
+                                            <span asp-validation-for="DeliveryItems[i].Quantity" class="text-danger"></span>
+                                        </div>
+                                    </div>
+
+                                    <button type="button" class="btn btn-outline-danger delivery-remove-item-btn">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="delivery-item-empty-hint d-none" id="deliveryItemEmptyHint">
+                            <i class="fa-solid fa-box-open"></i>
+                            <h5>No items added yet</h5>
+                            <p>Add at least one item to create this delivery.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<template id="deliveryItemTemplate">
+    <div class="delivery-item-row">
+        <div class="delivery-item-row-number">
+            __ROW_NUMBER__
+        </div>
+
+        <div class="delivery-item-fields">
+            <div>
+                <label class="form-label fw-semibold">Item</label>
+                <select name="DeliveryItems[__INDEX__].ItemId" class="form-select delivery-item-select">
+                    <option value="">-- Select Item --</option>
+                    @foreach (var item in Model.Items)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label fw-semibold">Quantity</label>
+                <input name="DeliveryItems[__INDEX__].Quantity"
+                       value="1"
+                       class="form-control delivery-quantity-input"
+                       type="number"
+                       min="1" />
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-outline-danger delivery-remove-item-btn">
+            <i class="fa-solid fa-trash"></i>
+        </button>
+    </div>
+</template>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const itemList = document.getElementById('deliveryItemList');
+            const addBtn = document.getElementById('addDeliveryItemBtn');
+            const template = document.getElementById('deliveryItemTemplate');
+            const rowCountEl = document.getElementById('deliveryItemRowCount');
+            const totalQtyEl = document.getElementById('deliveryTotalQuantity');
+            const emptyHint = document.getElementById('deliveryItemEmptyHint');
+
+            function getRows() {
+                return Array.from(itemList.querySelectorAll('.delivery-item-row'));
+            }
+
+            function reindexRows() {
+                const rows = getRows();
+
+                rows.forEach((row, index) => {
+                    const number = row.querySelector('.delivery-item-row-number');
+                    const itemSelect = row.querySelector('.delivery-item-select');
+                    const quantityInput = row.querySelector('.delivery-quantity-input');
+
+                    if (number) {
+                        number.textContent = index + 1;
+                    }
+
+                    if (itemSelect) {
+                        itemSelect.name = `DeliveryItems[${index}].ItemId`;
+                    }
+
+                    if (quantityInput) {
+                        quantityInput.name = `DeliveryItems[${index}].Quantity`;
+                    }
+                });
+            }
+
+            function updateSummary() {
+                const rows = getRows();
+
+                let totalQty = 0;
+
+                rows.forEach(row => {
+                    const qtyInput = row.querySelector('.delivery-quantity-input');
+                    const qty = parseInt(qtyInput?.value || '0', 10);
+
+                    if (!Number.isNaN(qty) && qty > 0) {
+                        totalQty += qty;
+                    }
+                });
+
+                if (rowCountEl) {
+                    rowCountEl.textContent = rows.length;
+                }
+
+                if (totalQtyEl) {
+                    totalQtyEl.textContent = totalQty;
+                }
+
+                if (emptyHint) {
+                    emptyHint.classList.toggle('d-none', rows.length > 0);
+                }
+            }
+
+            function bindRow(row) {
+                const removeBtn = row.querySelector('.delivery-remove-item-btn');
+                const qtyInput = row.querySelector('.delivery-quantity-input');
+
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function () {
+                        row.remove();
+                        reindexRows();
+                        updateSummary();
+                    });
+                }
+
+                if (qtyInput) {
+                    qtyInput.addEventListener('input', updateSummary);
+                }
+            }
+
+            getRows().forEach(bindRow);
+
+            if (addBtn && template) {
+                addBtn.addEventListener('click', function () {
+                    const index = getRows().length;
+
+                    const html = template.innerHTML
+                        .replaceAll('__INDEX__', index)
+                        .replaceAll('__ROW_NUMBER__', index + 1);
+
+                    const wrapper = document.createElement('div');
+                    wrapper.innerHTML = html.trim();
+
+                    const newRow = wrapper.firstElementChild;
+                    itemList.appendChild(newRow);
+
+                    bindRow(newRow);
+                    reindexRows();
+                    updateSummary();
+                });
+            }
+
+            updateSummary();
+        });
+    </script>
+}

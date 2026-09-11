@@ -1,0 +1,81 @@
+@model SmartAidNavigator.Web.Models.Shelter
+@{
+    ViewData["Title"] = "Edit Shelter";
+    var ngos = ViewBag.Ngos as List<SmartAidNavigator.Web.Models.Ngo> ?? new();
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-pen me-2"></i>Edit Shelter</h2>
+    <a class="btn btn-secondary" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ShelterId" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Shelter Name</label>
+                <input class="form-control" asp-for="ShelterName" />
+                <span class="text-danger" asp-validation-for="ShelterName"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">NGO <span class="text-muted fw-normal">(optional)</span></label>
+                <select class="form-select" asp-for="NgoId">
+                    <option value="">(None)</option>
+                    @foreach (var n in ngos)
+                    {
+                        <option value="@n.NgoId">@n.NgoName</option>
+                    }
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Address</label>
+                <input class="form-control" asp-for="AddressLine" />
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">City</label>
+                    <input class="form-control" asp-for="City" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">State</label>
+                    <input class="form-control" asp-for="State" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-semibold">Postal Code</label>
+                    <input class="form-control" asp-for="PostalCode" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Latitude</label>
+                    <input class="form-control" asp-for="Latitude" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Longitude</label>
+                    <input class="form-control" asp-for="Longitude" />
+                </div>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" asp-for="IsActive" />
+                <label class="form-check-label">Active</label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i>Save</button>
+                <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,227 @@
+﻿@model SmartAidNavigator.Web.ViewModels.UserDetailsVm
+
+@{
+    ViewData["Title"] = "User Details";
+
+    var addressParts = new[]
+    {
+        Model.AddressLine,
+        Model.City,
+        Model.State,
+        Model.PostalCode
+    }.Where(x => !string.IsNullOrWhiteSpace(x));
+
+    var fullAddress = string.Join(", ", addressParts);
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-circle-user me-2"></i>User Details
+        </h2>
+        <p class="text-muted mb-0">View full account, role, and personal information.</p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="staff-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <h4 class="mb-1">@Model.FullName</h4>
+
+                <div class="text-muted mb-2">
+                    @(string.IsNullOrWhiteSpace(Model.RolesCsv) ? "No Role Assigned" : Model.RolesCsv)
+                </div>
+
+                <div class="mb-3">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">
+                            <i class="fa-solid fa-circle-check me-1"></i>Active
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">
+                            <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                        </span>
+                    }
+
+                    @if (Model.IsGuest)
+                    {
+                        <span class="badge bg-warning text-dark ms-1">
+                            <i class="fa-solid fa-user-clock me-1"></i>Guest
+                        </span>
+                    }
+                </div>
+
+                <div class="d-grid gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Model.Email) && Model.Email != "-")
+                    {
+                        <a href="mailto:@Model.Email" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-envelope me-1"></i>Email User
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                    {
+                        <a href="tel:@Model.Phone" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-phone me-1"></i>Call User
+                        </a>
+                    }
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.UserId"
+                       class="btn btn-warning">
+                        <i class="fa-solid fa-pen me-1"></i>Edit Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-user-gear me-2 text-primary"></i>Account Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">User ID</div>
+                        <div class="detail-value">#@Model.UserId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Person ID</div>
+                        <div class="detail-value">#@Model.PersonId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value">@Model.Email</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value">@(Model.Phone ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Roles</div>
+                        <div class="detail-value">
+                            @if (!string.IsNullOrWhiteSpace(Model.RolesCsv))
+                            {
+                                foreach (var role in (Model.RolesCsv ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    var trimmed = role.Trim();
+                                    var badgeClass = trimmed switch
+                                    {
+                                        "ADMIN" => "bg-danger",
+                                        "NGO_STAFF" => "bg-primary",
+                                        "SHELTER_MANAGER" => "bg-success",
+                                        "PUBLIC" => "bg-secondary",
+                                        _ => "bg-secondary"
+                                    };
+
+                                    <span class="badge @badgeClass me-1">@trimmed</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">No role assigned</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Created At</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.NgoName) || !string.IsNullOrWhiteSpace(Model.ShelterName))
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-link me-2 text-primary"></i>Linked Organization / Shelter
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        @if (!string.IsNullOrWhiteSpace(Model.NgoName))
+                        {
+                            <div class="col-md-6">
+                                <div class="detail-label">NGO</div>
+                                <div class="detail-value">@Model.NgoName</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="detail-label">NGO Staff Title</div>
+                                <div class="detail-value">@(Model.NgoStaffTitle ?? "-")</div>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(Model.ShelterName))
+                        {
+                            <div class="col-md-6">
+                                <div class="detail-label">Shelter</div>
+                                <div class="detail-value">@Model.ShelterName</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="detail-label">Shelter Role</div>
+                                <div class="detail-value">Shelter Manager</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-address-card me-2 text-primary"></i>Personal Details
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">IC / Passport</div>
+                        <div class="detail-value">@(Model.IcOrPassport ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Gender</div>
+                        <div class="detail-value">@(Model.Gender ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Date of Birth</div>
+                        <div class="detail-value">
+                            @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value">
+                            @(string.IsNullOrWhiteSpace(fullAddress) ? "-" : fullAddress)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

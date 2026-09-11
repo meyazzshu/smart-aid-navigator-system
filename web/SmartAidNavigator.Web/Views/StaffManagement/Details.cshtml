@@ -1,0 +1,186 @@
+﻿@model SmartAidNavigator.Web.ViewModels.StaffDetailsVm
+
+@{
+    ViewData["Title"] = "Staff Details";
+
+    string StatusBadge()
+    {
+        return Model.IsActive
+            ? "<span class=\"badge bg-success\"><i class=\"fa-solid fa-circle-check me-1\"></i>Active</span>"
+            : "<span class=\"badge bg-secondary\"><i class=\"fa-solid fa-circle-xmark me-1\"></i>Inactive</span>";
+    }
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-id-card me-2"></i>Staff Details
+        </h2>
+        <p class="text-muted mb-0">View staff account, role, and linked organization details.</p>
+    </div>
+
+    <a asp-action="@Model.BackAction" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="staff-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+
+                <h4 class="mb-1">@Model.FullName</h4>
+
+                <div class="text-muted mb-2">@Model.StaffType</div>
+
+                <div class="mb-3">
+                    @Html.Raw(StatusBadge())
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit"
+                       asp-route-userId="@Model.UserId"
+                       asp-route-from="@Model.BackAction"
+                       class="btn btn-warning">
+                        <i class="fa-solid fa-pen me-1"></i>Edit Staff
+                    </a>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Email) && Model.Email != "-")
+                    {
+                        <a href="mailto:@Model.Email" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-envelope me-1"></i>Email Staff
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                    {
+                        <a href="tel:@Model.Phone" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-phone me-1"></i>Call Staff
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-user me-2 text-primary"></i>Account Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">User ID</div>
+                        <div class="detail-value">#@Model.UserId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Person ID</div>
+                        <div class="detail-value">#@Model.PersonId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value">@Model.Email</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value">@(Model.Phone ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Roles</div>
+                        <div class="detail-value">@Model.RolesCsv</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Created At</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-briefcase me-2 text-primary"></i>Staff Assignment
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Staff Type</div>
+                        <div class="detail-value">@Model.StaffType</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Staff Title</div>
+                        <div class="detail-value">@Model.StaffTitle</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Linked Unit Type</div>
+                        <div class="detail-value">@Model.LinkedUnitType</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Linked Unit</div>
+                        <div class="detail-value">@Model.LinkedUnitName</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-address-card me-2 text-primary"></i>Personal Details
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">IC / Passport</div>
+                        <div class="detail-value">@(Model.IcOrPassport ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Gender</div>
+                        <div class="detail-value">@(Model.Gender ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Date of Birth</div>
+                        <div class="detail-value">
+                            @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value">
+                            @{
+                                var addressParts = new[]
+                                {
+                            Model.AddressLine,
+                            Model.City,
+                            Model.State,
+                            Model.PostalCode
+                            }.Where(x => !string.IsNullOrWhiteSpace(x));
+
+                                var address = string.Join(", ", addressParts);
+                            }
+
+                            @(string.IsNullOrWhiteSpace(address) ? "-" : address)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

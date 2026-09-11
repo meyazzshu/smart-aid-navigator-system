@@ -1,0 +1,233 @@
+@model SmartAidNavigator.Web.Models.Shelter
+@{
+    ViewData["Title"] = "Shelter Details";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-house me-2"></i>Shelter Details</h2>
+    <div class="d-flex gap-2">
+        <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.ShelterId"><i class="fa-solid fa-pen me-1"></i>Edit</a>
+        <a class="btn btn-secondary" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><i class="fa-solid fa-circle-info me-2"></i>Shelter Information</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9"><strong>@Model.ShelterName</strong></dd>
+
+            <dt class="col-sm-3">NGO</dt>
+            <dd class="col-sm-9">@(Model.Ngo?.NgoName ?? "-")</dd>
+
+            <dt class="col-sm-3">Address</dt>
+            <dd class="col-sm-9">@(!string.IsNullOrWhiteSpace(Model.AddressLine) ? Model.AddressLine : "-")</dd>
+
+            <dt class="col-sm-3">City / State</dt>
+            <dd class="col-sm-9">
+                @(string.Join(", ", new[] { Model.City, Model.State }.Where(x => !string.IsNullOrWhiteSpace(x))))
+                @if (!string.IsNullOrWhiteSpace(Model.PostalCode)) { <span class="text-muted">(@Model.PostalCode)</span> }
+            </dd>
+
+            <dt class="col-sm-3">Coordinates</dt>
+            <dd class="col-sm-9">
+                <i class="fa-solid fa-location-dot me-1 text-muted"></i>
+                @(Model.Latitude.HasValue ? Model.Latitude.Value.ToString() : "-"),
+                @(Model.Longitude.HasValue ? Model.Longitude.Value.ToString() : "-")
+            </dd>
+
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsActive)
+                {
+                    <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Created</dt>
+            <dd class="col-sm-9 text-muted">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+        </dl>
+    </div>
+</div>
+
+<hr />
+<h4 class="mb-4"><i class="fa-solid fa-chart-bar me-2"></i>Dashboard Analytics</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.TotalInventory</div>
+                <div class="stat-card-label">Total Inventory</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.TotalBeneficiaries</div>
+                <div class="stat-card-label">Beneficiaries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-truck"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.OutstandingDeliveries</div>
+                <div class="stat-card-label">Outstanding Deliveries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon red"><i class="fa-solid fa-hand-holding-heart"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.TotalNeeds</div>
+                <div class="stat-card-label">Needs</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center fw-bold"><i class="fa-solid fa-chart-pie me-2"></i>Inventory Types</div>
+            <div class="card-body">
+                <canvas id="inventoryTypeChart" style="max-width:100%;height:260px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center fw-bold"><i class="fa-solid fa-chart-line me-2"></i>Deliveries Over Time</div>
+            <div class="card-body">
+                <canvas id="deliveriesOverTimeChart" style="max-width:100%;height:260px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center fw-bold"><i class="fa-solid fa-chart-bar me-2"></i>Top 5 Most Needed Items</div>
+            <div class="card-body">
+                <canvas id="topNeedsChart" style="max-width:100%;height:260px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header text-center fw-bold"><i class="fa-solid fa-scale-balanced me-2"></i>Stock vs. Needs (Top 5 Items)</div>
+            <div class="card-body">
+                <canvas id="stockVsNeedsChart" style="max-width:100%;height:260px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+         document.addEventListener('DOMContentLoaded', function() {
+            new Chart(document.getElementById('inventoryTypeChart'), {
+                type: 'pie',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.InventoryTypeLabels)),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(ViewBag.InventoryTypeData)),
+                        backgroundColor: [
+                            '#03466e', '#54afe6', '#ffcd56', '#4bc0c0', '#9966ff', '#ff9f40', '#8bc34a', '#e91e63'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Inventory by Type' }
+                    }
+                }
+            });
+
+            new Chart(document.getElementById('topNeedsChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.TopNeedsLabels)),
+                    datasets: [{
+                        label: 'Needed Quantity',
+                        data: @Html.Raw(Json.Serialize(ViewBag.TopNeedsData)),
+                        backgroundColor: '#dc3545'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Top 5 Most Needed Items' }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('stockVsNeedsChart'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.StockVsNeedsLabels)),
+                    datasets: [
+                        {
+                            label: 'Stock',
+                            data: @Html.Raw(Json.Serialize(ViewBag.StockVsNeedsStock)),
+                            backgroundColor: '#03466e'
+                        },
+                        {
+                            label: 'Needs',
+                            data: @Html.Raw(Json.Serialize(ViewBag.StockVsNeedsNeeds)),
+                            backgroundColor: '#dc3545'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: true, text: 'Stock vs. Needs (Top 5 Items)' }
+                    },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('deliveriesOverTimeChart'), {
+                type: 'line',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(ViewBag.DeliveriesMonthLabels)),
+                    datasets: [{
+                        label: 'Deliveries',
+                        data: @Html.Raw(Json.Serialize(ViewBag.DeliveriesMonthData)),
+                        borderColor: '#54afe6',
+                        backgroundColor: 'rgba(84,175,230,0.15)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        title: { display: true, text: 'Deliveries Over Time' }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        });
+    </script>
+}

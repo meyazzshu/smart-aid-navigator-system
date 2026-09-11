@@ -1,0 +1,306 @@
+﻿@model SmartAidNavigator.Web.ViewModels.OrganizationRegisterVm
+
+@{
+    var isNgo = Model.RegisterType == "NGO";
+    ViewData["Title"] = isNgo ? "Register NGO Organization" : "Register Shelter / PPS";
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid @(isNgo ? "fa-building-ngo" : "fa-house-circle-check") me-2"></i>
+            @(isNgo ? "Register NGO Organization" : "Register Shelter / PPS")
+        </h2>
+        <p class="text-muted mb-0">
+            Submit your official registration request. Admin approval is required before your account can login.
+        </p>
+    </div>
+
+    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back to Login
+    </a>
+</div>
+
+<div class="register-request-shell">
+    <form asp-controller="OrganizationRegister" asp-action="Register" method="post" class="register-request-form">
+        @Html.AntiForgeryToken()
+
+        <input asp-for="RegisterType" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-user me-2 text-primary"></i>Main Contact Account
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="FullName" class="form-label fw-semibold"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Full name of main contact person" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="IcOrPassport" class="form-label fw-semibold"></label>
+                        <input asp-for="IcOrPassport" class="form-control" placeholder="Optional" />
+                        <span asp-validation-for="IcOrPassport" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Email" class="form-label fw-semibold"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Login email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Phone" class="form-label fw-semibold"></label>
+                        <input asp-for="Phone" class="form-control" placeholder="Main contact phone" />
+                        <span asp-validation-for="Phone" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Password" class="form-label fw-semibold"></label>
+                        <input asp-for="Password" type="password" class="form-control" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid @(isNgo ? "fa-building-ngo" : "fa-house") me-2 text-primary"></i>
+                @(isNgo ? "NGO Organization Details" : "Shelter / PPS Details")
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="EntityName" class="form-label fw-semibold">
+                            @(isNgo ? "NGO Organization Name" : "Shelter / PPS Name")
+                        </label>
+                        <input asp-for="EntityName" class="form-control" />
+                        <span asp-validation-for="EntityName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="EntityPhone" class="form-label fw-semibold"></label>
+                        <input asp-for="EntityPhone" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="EntityEmail" class="form-label fw-semibold"></label>
+                        <input asp-for="EntityEmail" class="form-control" />
+                    </div>
+
+                    @if (isNgo)
+                    {
+                        <div class="col-md-4">
+                            <label asp-for="TaxExemptionNo" class="form-label fw-semibold"></label>
+                            <input asp-for="TaxExemptionNo" class="form-control" placeholder="Optional" />
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="form-check mb-2">
+                                <input asp-for="IsTaxExempt" class="form-check-input" />
+                                <label asp-for="IsTaxExempt" class="form-check-label fw-semibold"></label>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="col-md-6">
+                            <label asp-for="Capacity" class="form-label fw-semibold"></label>
+                            <input asp-for="Capacity" type="number" min="1" class="form-control" />
+                            <span asp-validation-for="Capacity" class="text-danger"></span>
+                        </div>
+                    }
+
+                    <div class="col-12">
+                        <label asp-for="Description" class="form-label fw-semibold"></label>
+                        <textarea asp-for="Description" class="form-control" rows="3"
+                                  placeholder="Brief description of the organization or shelter"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-location-dot me-2 text-primary"></i>Google Location
+            </div>
+
+            <div class="card-body">
+                <div class="alert alert-info small">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    Search and select the official location from Google. The address, latitude, and longitude will be filled automatically.
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PlaceName" class="form-label fw-semibold"></label>
+                    <input asp-for="PlaceName" id="googlePlaceInput" class="form-control"
+                           placeholder="Search organization / shelter location..." autocomplete="off" />
+                    <span asp-validation-for="PlaceName" class="text-danger"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label asp-for="AddressLine" class="form-label fw-semibold"></label>
+                        <input asp-for="AddressLine" id="AddressLine" class="form-control" />
+                        <span asp-validation-for="AddressLine" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label asp-for="PostalCode" class="form-label fw-semibold"></label>
+                        <input asp-for="PostalCode" id="PostalCode" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="City" class="form-label fw-semibold"></label>
+                        <input asp-for="City" id="City" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="State" class="form-label fw-semibold"></label>
+                        <input asp-for="State" id="State" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Latitude" class="form-label fw-semibold"></label>
+                        <input asp-for="Latitude" id="Latitude" class="form-control" readonly />
+                        <span asp-validation-for="Latitude" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="Longitude" class="form-label fw-semibold"></label>
+                        <input asp-for="Longitude" id="Longitude" class="form-control" readonly />
+                        <span asp-validation-for="Longitude" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div id="registerLocationMap" class="register-location-map mt-3"></div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+            <a asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-paper-plane me-1"></i>Submit Registration Request
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let registerMap;
+        let registerMarker;
+        let registerAutocomplete;
+
+        function initOrganizationRegisterMap() {
+            const defaultCenter = { lat: 3.1390, lng: 101.6869 };
+
+            registerMap = new google.maps.Map(document.getElementById("registerLocationMap"), {
+                center: defaultCenter,
+                zoom: 12
+            });
+
+            registerMarker = new google.maps.Marker({
+                map: registerMap,
+                position: defaultCenter,
+                draggable: false
+            });
+
+            const input = document.getElementById("googlePlaceInput");
+
+            registerAutocomplete = new google.maps.places.Autocomplete(input, {
+                componentRestrictions: { country: "my" },
+                fields: ["formatted_address", "geometry", "name", "address_components"]
+            });
+
+            registerAutocomplete.addListener("place_changed", function () {
+                const place = registerAutocomplete.getPlace();
+
+                if (!place.geometry || !place.geometry.location) {
+                    alert("Please select a valid Google location from the dropdown.");
+                    return;
+                }
+
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+
+                input.value = place.name || input.value;
+
+                const addressLineInput = document.getElementById("AddressLine");
+                const latitudeInput = document.getElementById("Latitude");
+                const longitudeInput = document.getElementById("Longitude");
+
+                if (addressLineInput) {
+                    addressLineInput.value = place.formatted_address || input.value;
+                }
+
+                if (latitudeInput) {
+                    latitudeInput.value = lat.toFixed(7);
+                }
+
+                if (longitudeInput) {
+                    longitudeInput.value = lng.toFixed(7);
+                }
+
+                fillAddressComponents(place.address_components || []);
+
+                const pos = { lat: lat, lng: lng };
+                registerMap.setCenter(pos);
+                registerMap.setZoom(16);
+                registerMarker.setPosition(pos);
+            });
+        }
+
+        function fillAddressComponents(components) {
+            let city = "";
+            let state = "";
+            let postalCode = "";
+
+            components.forEach(function (component) {
+                const types = component.types || [];
+
+                if (types.includes("postal_code")) {
+                    postalCode = component.long_name;
+                }
+
+                if (types.includes("locality")) {
+                    city = component.long_name;
+                }
+
+                if (!city && types.includes("administrative_area_level_2")) {
+                    city = component.long_name;
+                }
+
+                if (types.includes("administrative_area_level_1")) {
+                    state = component.long_name;
+                }
+            });
+
+            document.getElementById("City").value = city;
+            document.getElementById("State").value = state;
+            document.getElementById("PostalCode").value = postalCode;
+        }
+    </script>
+
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAlUu3cw1GzSieDfEpojNvjpStRVzDXm4E&loading=async&libraries=places&callback=initOrganizationRegisterMap">
+    </script>
+}

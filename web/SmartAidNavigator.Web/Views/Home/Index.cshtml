@@ -1,0 +1,525 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="app-hero mb-4">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-5 text-center text-lg-start">
+            <h1 class="display-5 fw-semibold">
+                <i class="fa-solid fa-circle-nodes me-2"></i>SmartAid Navigator
+            </h1>
+            <p class="lead mb-4">
+                A unified platform for NGOs and public partners to coordinate aid delivery,
+                route planning, and shelter support across Malaysia.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center justify-content-lg-start gap-2">
+                <a class="btn btn-outline-light" asp-controller="Account" asp-action="Login">
+                    <i class="fa-solid fa-right-to-bracket me-1"></i>Login
+                </a>
+                <a class="btn btn-light" asp-controller="Register" asp-action="Index">
+                    <i class="fa-solid fa-user-plus me-1"></i>Register
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="home-map-card">
+                <div class="home-map-toolbar">
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="home-map-label">Location Type</label>
+                            <select id="homeMapTypeFilter" class="form-select form-select-sm">
+                                <option value="ALL">All Locations</option>
+                                <option value="SHELTER">Shelters Only</option>
+                                <option value="NGO">NGOs Only</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="home-map-label">State</label>
+                            <select id="homeMapStateFilter" class="form-select form-select-sm">
+                                <option value="">All States</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="home-map-label">City</label>
+                            <select id="homeMapCityFilter" class="form-select form-select-sm">
+                                <option value="">All Cities</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-9">
+                            <label class="home-map-label">Search</label>
+                            <input id="homeMapSearch"
+                                   class="form-control form-control-sm"
+                                   placeholder="Search shelter, NGO, city, state, or address..." />
+                        </div>
+
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button"
+                                    id="homeMapResetBtn"
+                                    class="btn btn-sm btn-light w-100">
+                                <i class="fa-solid fa-rotate-left me-1"></i>Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="homeGoogleMap"></div>
+
+                <div class="home-map-footer">
+                    <div>
+                        <span class="home-map-dot shelter-dot"></span>
+                        Shelter
+                    </div>
+                    <div>
+                        <span class="home-map-dot ngo-dot"></span>
+                        NGO
+                    </div>
+                    <div class="ms-auto">
+                        <span id="homeMapCount">0</span> location(s) shown
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Platform quick stats strip -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-building-ngo"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.HomeNgoCount</div>
+                <div class="stat-card-label">Registered Partners</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-house-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.HomeShelterCount</div>
+                <div class="stat-card-label">Active Locations</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-truck-fast"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.HomeDeliveryCount</div>
+                <div class="stat-card-label">Aid Dispatched</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon teal"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.HomeBeneficiaryCount</div>
+                <div class="stat-card-label">People Supported</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Feature cards -->
+<div class="section-label mb-3">Platform Features</div>
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon text-primary"><i class="fa-solid fa-route"></i></div>
+            <h5>Smart Route Planning</h5>
+            <p class="text-muted mb-0">Optimize delivery routes across multiple shelters using graph-based algorithms to reduce travel time and cost.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon" style="color:var(--stat-green)"><i class="fa-solid fa-warehouse"></i></div>
+            <h5>Inventory Management</h5>
+            <p class="text-muted mb-0">Track aid stock levels, set minimum thresholds, and receive low-stock alerts for each shelter in real time.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon" style="color:var(--stat-orange)"><i class="fa-solid fa-hand-holding-heart"></i></div>
+            <h5>Beneficiary Support</h5>
+            <p class="text-muted mb-0">Register and track beneficiaries, record individual needs, and prioritize aid distribution by urgency.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon" style="color:var(--stat-purple)"><i class="fa-solid fa-truck"></i></div>
+            <h5>Delivery Tracking</h5>
+            <p class="text-muted mb-0">Monitor aid deliveries from planning through transit to completion with live status updates.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon" style="color:var(--stat-teal)"><i class="fa-solid fa-chart-bar"></i></div>
+            <h5>Data Analytics</h5>
+            <p class="text-muted mb-0">Visualize delivery performance, inventory levels, and beneficiary demographics with interactive dashboards.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="feature-card">
+            <div class="feature-icon" style="color:var(--stat-red)"><i class="fa-solid fa-users-gear"></i></div>
+            <h5>Role-Based Access</h5>
+            <p class="text-muted mb-0">Secure, role-based portals for system admins, NGO staff, and shelter managers with tailored dashboards.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .home-map-card {
+        background: rgba(255, 255, 255, 0.96);
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        text-align: left;
+    }
+
+    .home-map-toolbar {
+        padding: 14px;
+        background: linear-gradient(135deg, rgba(13, 110, 253, 0.10), rgba(25, 135, 84, 0.10));
+        border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .home-map-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 4px;
+    }
+
+    #homeGoogleMap {
+        width: 100%;
+        height: 440px;
+        background: #e5e7eb;
+    }
+
+    .home-map-footer {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        background: #fff;
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+    }
+
+    .home-map-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+    }
+
+    .shelter-dot {
+        background: #0d6efd;
+    }
+
+    .ngo-dot {
+        background: #198754;
+    }
+
+    .home-map-info-title {
+        font-weight: 800;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .home-map-info-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+    }
+
+        .home-map-info-badge.shelter {
+            background: #0d6efd;
+        }
+
+        .home-map-info-badge.ngo {
+            background: #198754;
+        }
+
+    .home-map-info-text {
+        font-size: 12px;
+        color: #475569;
+        line-height: 1.4;
+    }
+
+    @@media (max-width: 768px) {
+        #homeGoogleMap {
+            height: 360px;
+        }
+
+        .home-map-footer {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const homeMapLocations = @Html.Raw(ViewBag.MapLocationsJson ?? "[]");
+
+        let homeMap;
+        let homeInfoWindow;
+        let homeMarkers = [];
+
+        function normalizeText(value) {
+            return (value || '').toString().toLowerCase().trim();
+        }
+
+        function fullAddress(location) {
+            return [
+                location.address,
+                location.city,
+                location.state,
+                location.postalCode
+            ].filter(x => x !== null && x !== undefined && x.toString().trim() !== '').join(', ');
+        }
+
+        function markerColor(type) {
+            return type === 'SHELTER' ? '#0d6efd' : '#198754';
+        }
+
+        function markerIcon(type) {
+            return {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: type === 'SHELTER' ? 9 : 8,
+                fillColor: markerColor(type),
+                fillOpacity: 1,
+                strokeColor: '#ffffff',
+                strokeWeight: 2
+            };
+        }
+
+        function buildInfoWindowHtml(location) {
+            const typeLabel = location.type === 'SHELTER' ? 'Shelter' : 'NGO';
+            const badgeClass = location.type === 'SHELTER' ? 'shelter' : 'ngo';
+            const address = fullAddress(location) || '-';
+
+            let capacityHtml = '';
+
+            if (location.type === 'SHELTER') {
+                const capacity = location.capacity ?? '-';
+                const occupancy = location.currentOccupancy ?? 0;
+
+                capacityHtml = `
+                    <div class="home-map-info-text">
+                        <strong>Capacity:</strong> ${capacity}<br/>
+                        <strong>Current Occupancy:</strong> ${occupancy}
+                    </div>
+                `;
+            }
+
+            return `
+                <div style="max-width:260px;">
+                    <div class="home-map-info-title">${location.name || '-'}</div>
+                    <span class="home-map-info-badge ${badgeClass}">${typeLabel}</span>
+                    <div class="home-map-info-text">
+                        <strong>Address:</strong><br/>
+                        ${address}
+                    </div>
+                    ${capacityHtml}
+                </div>
+            `;
+        }
+
+        function populateHomeMapFilters() {
+            const stateSelect = document.getElementById('homeMapStateFilter');
+            const citySelect = document.getElementById('homeMapCityFilter');
+
+            if (!stateSelect || !citySelect) return;
+
+            const states = [...new Set(
+                homeMapLocations
+                    .map(x => (x.state || '').toString().trim())
+                    .filter(x => x.length > 0)
+            )].sort();
+
+            const cities = [...new Set(
+                homeMapLocations
+                    .map(x => (x.city || '').toString().trim())
+                    .filter(x => x.length > 0)
+            )].sort();
+
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
+
+        function createHomeMarkers() {
+            homeMarkers.forEach(marker => marker.setMap(null));
+            homeMarkers = [];
+
+            homeMapLocations.forEach(location => {
+                const lat = parseFloat(location.latitude);
+                const lng = parseFloat(location.longitude);
+
+                if (Number.isNaN(lat) || Number.isNaN(lng)) {
+                    return;
+                }
+
+                const marker = new google.maps.Marker({
+                    position: { lat, lng },
+                    map: homeMap,
+                    title: location.name,
+                    icon: markerIcon(location.type)
+                });
+
+                marker.homeLocationData = location;
+
+                marker.addListener('click', function () {
+                    homeInfoWindow.setContent(buildInfoWindowHtml(location));
+                    homeInfoWindow.open(homeMap, marker);
+                });
+
+                homeMarkers.push(marker);
+            });
+        }
+
+        function applyHomeMapFilters() {
+            const typeFilter = document.getElementById('homeMapTypeFilter')?.value || 'ALL';
+            const stateFilter = document.getElementById('homeMapStateFilter')?.value || '';
+            const cityFilter = document.getElementById('homeMapCityFilter')?.value || '';
+            const searchText = normalizeText(document.getElementById('homeMapSearch')?.value || '');
+
+            const bounds = new google.maps.LatLngBounds();
+            let visibleCount = 0;
+
+            homeMarkers.forEach(marker => {
+                const location = marker.homeLocationData;
+
+                const matchesType =
+                    typeFilter === 'ALL' ||
+                    location.type === typeFilter;
+
+                const matchesState =
+                    stateFilter === '' ||
+                    normalizeText(location.state) === normalizeText(stateFilter);
+
+                const matchesCity =
+                    cityFilter === '' ||
+                    normalizeText(location.city) === normalizeText(cityFilter);
+
+                const combinedText = normalizeText([
+                    location.name,
+                    location.type,
+                    location.address,
+                    location.city,
+                    location.state,
+                    location.postalCode
+                ].join(' '));
+
+                const matchesSearch =
+                    searchText === '' ||
+                    combinedText.includes(searchText);
+
+                const shouldShow =
+                    matchesType &&
+                    matchesState &&
+                    matchesCity &&
+                    matchesSearch;
+
+                marker.setVisible(shouldShow);
+
+                if (shouldShow) {
+                    bounds.extend(marker.getPosition());
+                    visibleCount++;
+                }
+            });
+
+            const countEl = document.getElementById('homeMapCount');
+            if (countEl) {
+                countEl.textContent = visibleCount;
+            }
+
+            if (visibleCount > 0) {
+                homeMap.fitBounds(bounds);
+
+                if (visibleCount === 1) {
+                    setTimeout(() => {
+                        homeMap.setZoom(14);
+                    }, 300);
+                }
+            } else {
+                homeMap.setCenter({ lat: 4.2105, lng: 101.9758 });
+                homeMap.setZoom(6);
+            }
+        }
+
+        function resetHomeMapFilters() {
+            document.getElementById('homeMapTypeFilter').value = 'ALL';
+            document.getElementById('homeMapStateFilter').value = '';
+            document.getElementById('homeMapCityFilter').value = '';
+            document.getElementById('homeMapSearch').value = '';
+
+            applyHomeMapFilters();
+        }
+
+        function initHomeGoogleMap() {
+            const mapElement = document.getElementById('homeGoogleMap');
+
+            if (!mapElement) {
+                return;
+            }
+
+            homeMap = new google.maps.Map(mapElement, {
+                center: { lat: 4.2105, lng: 101.9758 },
+                zoom: 6,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            homeInfoWindow = new google.maps.InfoWindow();
+
+            populateHomeMapFilters();
+            createHomeMarkers();
+            applyHomeMapFilters();
+
+            document.getElementById('homeMapTypeFilter')?.addEventListener('change', applyHomeMapFilters);
+            document.getElementById('homeMapStateFilter')?.addEventListener('change', applyHomeMapFilters);
+            document.getElementById('homeMapCityFilter')?.addEventListener('change', applyHomeMapFilters);
+            document.getElementById('homeMapSearch')?.addEventListener('input', applyHomeMapFilters);
+            document.getElementById('homeMapResetBtn')?.addEventListener('click', resetHomeMapFilters);
+        }
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async
+                defer
+                src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&callback=initHomeGoogleMap">
+        </script>
+    }
+    else
+    {
+        <script>
+            console.error('Google Maps API key is missing. Home map cannot load.');
+        </script>
+    }
+}

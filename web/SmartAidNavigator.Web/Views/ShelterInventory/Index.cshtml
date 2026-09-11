@@ -1,0 +1,278 @@
+﻿@model SmartAidNavigator.Web.ViewModels.InventoryIndexVm
+
+@{
+    ViewData["Title"] = "Shelter Inventory";
+
+    string StockFilterSelected(string value)
+    {
+        return Model.StockFilter == value ? "selected" : "";
+    }
+
+    string CategorySelected(int value)
+    {
+        return Model.CategoryId == value ? "selected" : "";
+    }
+
+    string SourceTypeSelected(string value)
+    {
+        return Model.SourceType == value ? "selected" : "";
+    }
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-warehouse me-2"></i>Shelter Inventory
+        </h2>
+        <p class="text-muted mb-0">
+            Manage your shelter stock quantity by aid item.
+        </p>
+    </div>
+
+    <a asp-controller="ShelterInventory"
+       asp-action="AddStock"
+       class="btn btn-primary">
+        <i class="fa-solid fa-plus me-1"></i>Add Stock
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterInventory" asp-action="Index" asp-route-stockFilter="in-stock" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.InStockCount</div>
+                <div class="stat-card-label">In Stock</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterInventory" asp-action="Index" asp-route-stockFilter="low" class="stat-card text-decoration-none">
+            <div class="stat-card-icon @(Model.LowStockCount > 0 ? "red" : "green")">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <div class="stat-card-value">@Model.LowStockCount</div>
+                <div class="stat-card-label">Low Stock</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterInventory" asp-action="Index" asp-route-stockFilter="zero" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-box-open"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.ZeroStockCount</div>
+                <div class="stat-card-label">Zero Stock</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="ShelterInventory" asp-action="Index" asp-route-stockFilter="all" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-cubes"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.TotalQuantity</div>
+                <div class="stat-card-label">Total Quantity</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Inventory
+    </div>
+
+    <div class="card-body">
+        <form method="get" asp-controller="ShelterInventory" asp-action="Index" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Stock View</label>
+                <select name="stockFilter" class="form-select">
+                    <option value="in-stock" selected="@StockFilterSelected("in-stock")">In Stock Only</option>
+                    <option value="all" selected="@StockFilterSelected("all")">All Items</option>
+                    <option value="zero" selected="@StockFilterSelected("zero")">Zero Stock</option>
+                    <option value="low" selected="@StockFilterSelected("low")">Low Stock</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.CategoryId" selected="@CategorySelected(cat.CategoryId)">
+                            @cat.CategoryName
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Item Source Type</label>
+                <select name="sourceType" class="form-select">
+                    <option value="">All Source Types</option>
+                    <option value="DONATION" selected="@SourceTypeSelected("DONATION")">Donation</option>
+                    <option value="MANUAL_ADJUSTMENT" selected="@SourceTypeSelected("MANUAL_ADJUSTMENT")">Manually Key-in</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input name="search" value="@Model.Search" class="form-control" placeholder="Search item, category, or unit..." />
+            </div>
+
+            <div class="col-md-12 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
+                </button>
+
+                <a asp-controller="ShelterInventory" asp-action="Index" class="btn btn-outline-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2 text-primary"></i>Inventory Records</span>
+        <span class="badge bg-secondary">@Model.Rows.Count record(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Rows.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th>Stock</th>
+                        <th>Minimum</th>
+                        <th>Unit</th>
+                        <th>Status</th>
+                        <th>Source Type</th>
+                        <th>Updated</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        var lowStock = row.MinimumLevel > 0 && row.Quantity < row.MinimumLevel;
+
+                        <tr class="@(lowStock ? "table-warning" : "")">
+                            <td>
+                                <div class="fw-semibold">
+                                    <i class="fa-solid fa-box me-1 text-muted"></i>@row.ItemName
+                                </div>
+                                <div class="text-muted small">Item ID: @row.ItemId</div>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">@row.CategoryName</span>
+                            </td>
+
+                            <td>
+                                @if (row.Quantity <= 0)
+                                {
+                                    <span class="badge bg-warning text-dark">@row.Quantity</span>
+                                }
+                                else if (lowStock)
+                                {
+                                    <span class="badge bg-danger">@row.Quantity</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">@row.Quantity</span>
+                                }
+                            </td>
+
+                            <td class="text-muted">@row.MinimumLevel</td>
+
+                            <td class="text-muted small">@row.Unit</td>
+
+                            <td>
+                                @if (row.Quantity <= 0)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fa-solid fa-box-open me-1"></i>Zero Stock
+                                    </span>
+                                }
+                                else if (lowStock)
+                                {
+                                    <span class="badge bg-danger">
+                                        <i class="fa-solid fa-triangle-exclamation me-1"></i>Low Stock
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Available
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (row.SourceType == "DONATION")
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-hand-holding-heart me-1"></i>Donation
+                                    </span>
+                                }
+                                else if (row.SourceType == "MANUAL_ADJUSTMENT")
+                                {
+                                    <span class="badge bg-primary">
+                                        <i class="fa-solid fa-keyboard me-1"></i>Manually Key-in
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+                            </td>
+
+                            <td class="text-muted small">
+                                @(row.UpdatedAt == DateTime.MinValue ? "-" : row.UpdatedAt.ToString("dd MMM yyyy HH:mm"))
+                            </td>
+
+                            <td>
+                                <a asp-controller="ShelterInventory"
+                                   asp-action="Adjust"
+                                   asp-route-itemId="@row.ItemId"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fa-solid fa-sliders me-1"></i>Manage
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No inventory records found for the selected filter.
+            </div>
+        }
+    </div>
+</div>

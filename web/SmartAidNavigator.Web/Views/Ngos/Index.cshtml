@@ -1,0 +1,588 @@
+﻿@model List<SmartAidNavigator.Web.Models.Ngo>
+
+@{
+    ViewData["Title"] = "NGO Directory";
+
+    var states = Model
+        .Select(x => x.State)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-building-ngo me-2"></i>NGO Directory</h2>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa-solid fa-plus me-1"></i>Add NGO
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<!-- Summary strip -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-building-ngo"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count</div>
+                <div class="stat-card-label">Total NGOs</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => x.IsActive)</div>
+                <div class="stat-card-label">Active</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => !x.IsActive)</div>
+                <div class="stat-card-label">Inactive</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-map-location-dot"></i></div>
+            <div>
+                <div class="stat-card-value">@states.Count</div>
+                <div class="stat-card-label">States Covered</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card ngo-filter-card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter NGOs
+    </div>
+
+    <div class="card-body">
+        <div class="ngo-filter-panel">
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="fa-solid fa-search"></i>
+                </span>
+                <input type="text"
+                       id="ngoSearchInput"
+                       class="form-control"
+                       placeholder="Search name, email, phone, city, state, address..." />
+            </div>
+
+            <select id="ngoStatusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <select id="ngoTaxFilter" class="form-select">
+                <option value="">All Tax Status</option>
+                <option value="EXEMPT">Tax Exempt</option>
+                <option value="NOT_EXEMPT">Not Tax Exempt</option>
+            </select>
+
+            <select id="ngoStateFilter" class="form-select">
+                <option value="">All States</option>
+                @foreach (var state in states)
+                {
+                    <option value="@state">@state</option>
+                }
+            </select>
+
+            <select id="ngoSortSelect" class="form-select">
+                <option value="created-desc" selected>Created: Newest First</option>
+                <option value="created-asc">Created: Oldest First</option>
+                <option value="id-desc">NGO ID: High to Low</option>
+                <option value="id-asc">NGO ID: Low to High</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+                <option value="city-asc">City: A to Z</option>
+                <option value="state-asc">State: A to Z</option>
+            </select>
+
+            <button type="button" id="clearNgoFiltersBtn" class="btn btn-outline-secondary">
+                Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2"></i>All NGOs</span>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border">15 records per page</span>
+            <span class="badge bg-secondary">@Model.Count record(s)</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <table class="table table-hover mb-0" id="ngoTable">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-hashtag me-1"></i>ID</th>
+                        <th><i class="fa-solid fa-building-ngo me-1"></i>Organisation Name</th>
+                        <th><i class="fa-solid fa-city me-1"></i>City</th>
+                        <th><i class="fa-solid fa-map me-1"></i>State</th>
+                        <th><i class="fa-solid fa-phone me-1"></i>Contact</th>
+                        <th><i class="fa-solid fa-receipt me-1"></i>Tax</th>
+                        <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th>
+                        <th style="width:210px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="ngoTableBody">
+                    @foreach (var ngo in Model)
+                    {
+                        var statusValue = ngo.IsActive ? "ACTIVE" : "INACTIVE";
+                        var taxValue = ngo.IsTaxExempt ? "EXEMPT" : "NOT_EXEMPT";
+                        var createdSort = ngo.CreatedAt.ToString("yyyyMMddHHmmss");
+                        var searchText = $"{ngo.NgoId} {ngo.NgoName} {ngo.Email} {ngo.Phone} {ngo.City} {ngo.State} {ngo.AddressLine} {ngo.PostalCode} {statusValue} {taxValue}".ToLower();
+
+                        <tr class="ngo-record-row"
+                            data-search="@searchText"
+                            data-ngo-id="@ngo.NgoId"
+                            data-name="@((ngo.NgoName ?? "").ToLower())"
+                            data-city="@((ngo.City ?? "").ToLower())"
+                            data-state="@((ngo.State ?? "").ToLower())"
+                            data-state-value="@(ngo.State ?? "")"
+                            data-status="@statusValue"
+                            data-tax="@taxValue"
+                            data-created="@createdSort">
+
+                            <td>
+                                <span class="fw-semibold text-primary">#@ngo.NgoId</span>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-building-ngo me-1 text-muted"></i>
+                                <strong>@ngo.NgoName</strong>
+
+                                @if (!string.IsNullOrWhiteSpace(ngo.AddressLine))
+                                {
+                                    <div class="text-muted small">@ngo.AddressLine</div>
+                                }
+                            </td>
+
+                            <td>@(ngo.City ?? "-")</td>
+
+                            <td>@(ngo.State ?? "-")</td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ngo.Phone))
+                                {
+                                    <div>
+                                        <i class="fa-solid fa-phone me-1 text-muted"></i>@ngo.Phone
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrWhiteSpace(ngo.Email))
+                                {
+                                    <div class="small">
+                                        <i class="fa-solid fa-envelope me-1 text-muted"></i>
+                                        <a href="mailto:@ngo.Email">@ngo.Email</a>
+                                    </div>
+                                }
+
+                                @if (string.IsNullOrWhiteSpace(ngo.Phone) && string.IsNullOrWhiteSpace(ngo.Email))
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (ngo.IsTaxExempt)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Exempt
+                                    </span>
+
+                                    @if (!string.IsNullOrWhiteSpace(ngo.TaxExemptionNo))
+                                    {
+                                        <div class="text-muted small">@ngo.TaxExemptionNo</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Not Exempt</span>
+                                }
+                            </td>
+
+                            <td>
+                                @if (ngo.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    </span>
+                                }
+                                else if (!ngo.IsActive && ngo.ApprovedAt == null)
+                                {
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fa-solid fa-clock me-1"></i>Pending Approval
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fa-solid fa-power-off me-1"></i>Deactivated
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a class="btn btn-sm btn-info"
+                                       asp-action="Details"
+                                       asp-route-id="@ngo.NgoId"
+                                       title="Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    <a class="btn btn-sm btn-warning"
+                                       asp-action="Edit"
+                                       asp-route-id="@ngo.NgoId"
+                                       title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    @if (!ngo.IsActive && ngo.ApprovedAt == null)
+                                    {
+                                        <form asp-action="Approve"
+                                              asp-route-id="@ngo.NgoId"
+                                              method="post"
+                                              class="d-inline">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="Approve NGO registration">
+                                                <i class="fa-solid fa-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (!ngo.IsActive && ngo.ApprovedAt != null)
+                                    {
+                                        <form asp-action="Reactivate"
+                                              asp-route-id="@ngo.NgoId"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Reactivate this NGO? Related NGO staff access will be enabled again.');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="Reactivate NGO">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Deactivate"
+                                              asp-route-id="@ngo.NgoId"
+                                              method="post"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Deactivate this NGO? Related staff accounts and shelters under this NGO will also be deactivated, but records will remain for reports.');">
+                                            @Html.AntiForgeryToken()
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-secondary"
+                                                    title="Deactivate NGO">
+                                                <i class="fa-solid fa-power-off"></i>
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <a class="btn btn-sm btn-danger"
+                                       asp-action="Delete"
+                                       asp-route-id="@ngo.NgoId"
+                                       title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="ngo-table-pagination" id="ngoTablePagination">
+                <div class="ngo-table-page-info" id="ngoTablePageInfo">
+                    Showing 0 - 0 of 0 NGOs
+                </div>
+
+                <div class="ngo-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="ngoTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="ngo-table-page-number" id="ngoTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="ngoTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 text-center text-muted d-none" id="noNgoSearchResult">
+                <i class="fa-solid fa-search fa-2x mb-2 text-primary"></i>
+                <div class="fw-semibold">No matching NGOs found.</div>
+                <div class="small">Try changing your search or filters.</div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No NGOs found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const searchInput = document.getElementById('ngoSearchInput');
+            const statusFilter = document.getElementById('ngoStatusFilter');
+            const taxFilter = document.getElementById('ngoTaxFilter');
+            const stateFilter = document.getElementById('ngoStateFilter');
+            const sortSelect = document.getElementById('ngoSortSelect');
+            const clearBtn = document.getElementById('clearNgoFiltersBtn');
+
+            const tableBody = document.getElementById('ngoTableBody');
+            const rows = Array.from(document.querySelectorAll('tr.ngo-record-row'));
+
+            const pagination = document.getElementById('ngoTablePagination');
+            const pageInfo = document.getElementById('ngoTablePageInfo');
+            const pageNumber = document.getElementById('ngoTablePageNumber');
+            const prevBtn = document.getElementById('ngoTablePrevBtn');
+            const nextBtn = document.getElementById('ngoTableNextBtn');
+            const noResult = document.getElementById('noNgoSearchResult');
+
+            let currentPage = 1;
+            let filteredRows = [...rows];
+
+            function sortRows() {
+                if (!tableBody || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                rows.sort((a, b) => {
+                    const aId = parseInt(a.dataset.ngoId || '0', 10);
+                    const bId = parseInt(b.dataset.ngoId || '0', 10);
+
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+
+                    const aCity = a.dataset.city || '';
+                    const bCity = b.dataset.city || '';
+
+                    const aState = a.dataset.state || '';
+                    const bState = b.dataset.state || '';
+
+                    const aCreated = a.dataset.created || '';
+                    const bCreated = b.dataset.created || '';
+
+                    switch (mode) {
+                        case 'created-asc':
+                            return aCreated.localeCompare(bCreated);
+
+                        case 'id-desc':
+                            return bId - aId;
+
+                        case 'id-asc':
+                            return aId - bId;
+
+                        case 'name-asc':
+                            return aName.localeCompare(bName) || bId - aId;
+
+                        case 'name-desc':
+                            return bName.localeCompare(aName) || bId - aId;
+
+                        case 'city-asc':
+                            return aCity.localeCompare(bCity) || bId - aId;
+
+                        case 'state-asc':
+                            return aState.localeCompare(bState) || bId - aId;
+
+                        case 'created-desc':
+                        default:
+                            return bCreated.localeCompare(aCreated);
+                    }
+                });
+
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            function filterRows() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const status = statusFilter ? statusFilter.value : '';
+                const tax = taxFilter ? taxFilter.value : '';
+                const state = stateFilter ? stateFilter.value : '';
+
+                filteredRows = rows.filter(row => {
+                    const text = row.dataset.search || '';
+                    const rowStatus = row.dataset.status || '';
+                    const rowTax = row.dataset.tax || '';
+                    const rowState = row.dataset.stateValue || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesStatus = !status || rowStatus === status;
+                    const matchesTax = !tax || rowTax === tax;
+                    const matchesState = !state || rowState === state;
+
+                    return matchesSearch && matchesStatus && matchesTax && matchesState;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredRows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const visibleSet = new Set(filteredRows.slice(startIndex, endIndex));
+
+                rows.forEach(row => {
+                    row.classList.toggle('d-none', !visibleSet.has(row));
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', total > 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} NGOs`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            function refreshTable() {
+                sortRows();
+                filterRows();
+                renderPage();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (taxFilter) {
+                taxFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (stateFilter) {
+                stateFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    currentPage = 1;
+                    sortRows();
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (taxFilter) taxFilter.value = '';
+                    if (stateFilter) stateFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'created-desc';
+
+                    refreshTable();
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refreshTable();
+        });
+    </script>
+}

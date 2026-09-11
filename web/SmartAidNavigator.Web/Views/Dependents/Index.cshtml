@@ -1,0 +1,54 @@
+@model List<SmartAidNavigator.Web.Models.PersonRelationship>
+@{
+    ViewData["Title"] = "My Dependents";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-people-arrows me-2"></i>My Dependents</h2>
+    <a class="btn btn-primary" asp-action="Create"><i class="fa-solid fa-user-plus me-1"></i>Add Dependent</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No active dependents.</div>
+}
+else
+{
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Relationship</th>
+                        <th>IC / Passport</th>
+                        <th>Phone</th>
+                        <th style="width:240px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var x in Model)
+                    {
+                        <tr>
+                            <td>@(x.RelatedPerson?.FullName ?? "-")</td>
+                            <td><span class="badge bg-secondary">@x.RelationshipType</span></td>
+                            <td>@(x.RelatedPerson?.IcOrPassport ?? "-")</td>
+                            <td>@(x.RelatedPerson?.Phone ?? "-")</td>
+                            <td class="d-flex gap-1">
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@x.RelationshipId">Edit</a>
+                                <form method="post" asp-action="Deactivate" asp-route-id="@x.RelationshipId">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Deactivate</button>
+                                </form>
+                                <form method="post" asp-action="RegisterAsBeneficiary" asp-route-id="@x.RelationshipId">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-primary" type="submit">Register as Beneficiary</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

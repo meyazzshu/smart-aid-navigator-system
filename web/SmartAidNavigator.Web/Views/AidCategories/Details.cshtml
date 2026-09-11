@@ -1,0 +1,65 @@
+@model SmartAidNavigator.Web.Models.AidCategory
+@{
+    ViewData["Title"] = "Category Details";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-tag me-2"></i>Category Details</h2>
+    <div class="d-flex gap-2">
+        <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.CategoryId"><i class="fa-solid fa-pen me-1"></i>Edit</a>
+        <a class="btn btn-secondary" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="fa-solid fa-circle-info me-2"></i>Category Information</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Category Name</dt>
+                    <dd class="col-sm-8"><strong>@Model.CategoryName</strong></dd>
+                    <dt class="col-sm-4">Items Count</dt>
+                    <dd class="col-sm-8"><span class="badge bg-secondary">@(Model.Items?.Count ?? 0)</span></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Items != null && Model.Items.Count > 0)
+{
+    <div class="card">
+        <div class="card-header"><i class="fa-solid fa-box-open me-2"></i>Items in This Category</div>
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-cube me-1"></i>Item Name</th>
+                        <th><i class="fa-solid fa-ruler me-1"></i>Unit</th>
+                        <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var it in Model.Items.OrderBy(x => x.ItemName))
+                    {
+                        <tr>
+                            <td>@it.ItemName</td>
+                            <td>@it.Unit</td>
+                            <td>
+                                @if (it.IsActive)
+                                {
+                                    <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

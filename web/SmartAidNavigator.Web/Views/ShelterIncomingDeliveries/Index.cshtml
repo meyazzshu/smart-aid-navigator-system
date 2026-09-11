@@ -1,0 +1,368 @@
+﻿@model SmartAidNavigator.Web.ViewModels.ShelterIncomingDeliveryIndexVm
+
+@{
+    ViewData["Title"] = "Incoming Deliveries";
+
+    string StatusSelected(string value)
+    {
+        return Model.Status == value ? "selected" : "";
+    }
+
+    string SortSelected(string value)
+    {
+        return Model.SortBy == value ? "selected" : "";
+    }
+
+    string StatusDisplay(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "Out For Delivery",
+            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(status.ToString().ToLower())
+        };
+    }
+
+    string StatusBadge(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED => "bg-secondary",
+            SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED => "bg-primary",
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "bg-warning text-dark",
+            SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED => "bg-success",
+            SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-truck-fast me-2"></i>Incoming Deliveries
+        </h2>
+        <p class="text-muted mb-0">
+            Track NGO deliveries coming to @Model.ShelterName.
+        </p>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.TotalCount</div>
+                <div class="stat-card-label">All</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" asp-route-status="PLANNED" asp-route-sortBy="planned" class="stat-card text-decoration-none">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-calendar-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.PlannedCount</div>
+                <div class="stat-card-label">Planned</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" asp-route-status="ROUTED" asp-route-sortBy="routed" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-route"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.RoutedCount</div>
+                <div class="stat-card-label">Routed</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" asp-route-status="IN_TRANSIT" asp-route-sortBy="in-transit" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-truck-fast"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.InTransitCount</div>
+                <div class="stat-card-label">Out Delivery</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" asp-route-status="DELIVERED" asp-route-sortBy="delivered" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.DeliveredCount</div>
+                <div class="stat-card-label">Delivered</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" asp-route-status="CANCELLED" asp-route-sortBy="cancelled" class="stat-card text-decoration-none">
+            <div class="stat-card-icon red"><i class="fa-solid fa-ban"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.CancelledCount</div>
+                <div class="stat-card-label">Cancelled</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Incoming Deliveries
+    </div>
+
+    <div class="card-body">
+        <form method="get" asp-controller="ShelterIncomingDeliveries" asp-action="Index" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="ALL" selected="@StatusSelected("ALL")">All Statuses</option>
+                    <option value="PLANNED" selected="@StatusSelected("PLANNED")">Planned</option>
+                    <option value="ROUTED" selected="@StatusSelected("ROUTED")">Routed</option>
+                    <option value="IN_TRANSIT" selected="@StatusSelected("IN_TRANSIT")">Out For Delivery</option>
+                    <option value="DELIVERED" selected="@StatusSelected("DELIVERED")">Delivered</option>
+                    <option value="CANCELLED" selected="@StatusSelected("CANCELLED")">Cancelled</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Sort By</label>
+                <select name="sortBy" class="form-select">
+                    <option value="newest" selected="@SortSelected("newest")">Newest</option>
+                    <option value="oldest" selected="@SortSelected("oldest")">Oldest</option>
+                    <option value="scheduled-asc" selected="@SortSelected("scheduled-asc")">Scheduled Date Asc</option>
+                    <option value="scheduled-desc" selected="@SortSelected("scheduled-desc")">Scheduled Date Desc</option>
+                    <option value="status" selected="@SortSelected("status")">Status</option>
+                    <option value="ngo-az" selected="@SortSelected("ngo-az")">NGO A-Z</option>
+                    <option value="qty-high" selected="@SortSelected("qty-high")">Quantity High-Low</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input name="search"
+                       value="@Model.Search"
+                       class="form-control"
+                       placeholder="Search delivery ID, NGO, item, or notes..." />
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
+                </button>
+
+                <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" class="btn btn-outline-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2 text-primary"></i>Incoming Delivery List</span>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border">15 records per page</span>
+            <span class="badge bg-secondary">@Model.Rows.Count record(s)</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Rows.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Delivery</th>
+                        <th>NGO Sender</th>
+                        <th>Items</th>
+                        <th>Quantity</th>
+                        <th>ETA</th>
+                        <th>Status</th>
+                        <th>Scheduled</th>
+                        <th style="width:100px;">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr class="incoming-delivery-row @(row.Status == SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT ? "table-warning" : "")">
+                            <td>
+                                <strong>Delivery #@row.DeliveryId</strong>
+                                <div class="text-muted small">
+                                    Created: @row.CreatedAt.ToString("dd MMM yyyy")
+                                </div>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-building-ngo me-1 text-muted"></i>
+                                @row.NgoName
+                            </td>
+
+                            <td>
+                                @if (row.Items.Any())
+                                {
+                                    <div class="fw-semibold">@row.Items.First().ItemName</div>
+                                    @if (row.Items.Count > 1)
+                                    {
+                                        <div class="text-muted small">+ @(row.Items.Count - 1) more item(s)</div>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">No items</span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">@row.TotalQuantity</span>
+                                <div class="text-muted small">@row.ItemTypeCount item type(s)</div>
+                            </td>
+
+                            <td>
+                                @if (row.EtaMinutes.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark border">@row.EtaMinutes min</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">-</span>
+                                }
+
+                                @if (row.DistanceKm.HasValue)
+                                {
+                                    <div class="text-muted small">@row.DistanceKm.Value.ToString("N1") km</div>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge @StatusBadge(row.Status)">
+                                    @StatusDisplay(row.Status)
+                                </span>
+                            </td>
+
+                            <td class="text-muted small">
+                                @(row.ScheduledDate.HasValue ? row.ScheduledDate.Value.ToString("dd MMM yyyy") : "-")
+                            </td>
+
+                            <td>
+                                <a asp-controller="ShelterIncomingDeliveries"
+                                   asp-action="Details"
+                                   asp-route-id="@row.DeliveryId"
+                                   class="btn btn-sm btn-primary"
+                                   title="Track Delivery">
+                                    <i class="fa-solid fa-location-dot me-1"></i>Track
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="donation-table-pagination" id="incomingDeliveryTablePagination">
+                <div class="donation-table-page-info" id="incomingDeliveryTablePageInfo">
+                    Showing 0 - 0 of 0 deliveries
+                </div>
+
+                <div class="donation-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="incomingDeliveryTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="donation-table-page-number" id="incomingDeliveryTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="incomingDeliveryTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No incoming deliveries found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const rows = Array.from(document.querySelectorAll('tr.incoming-delivery-row'));
+            const pagination = document.getElementById('incomingDeliveryTablePagination');
+            const pageInfo = document.getElementById('incomingDeliveryTablePageInfo');
+            const pageNumber = document.getElementById('incomingDeliveryTablePageNumber');
+            const prevBtn = document.getElementById('incomingDeliveryTablePrevBtn');
+            const nextBtn = document.getElementById('incomingDeliveryTableNextBtn');
+
+            let currentPage = 1;
+
+            function renderPage() {
+                const total = rows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+
+                rows.forEach((row, index) => {
+                    const shouldHide = index < startIndex || index >= endIndex;
+                    row.classList.toggle('d-none', shouldHide);
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} deliveries`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(rows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            renderPage();
+        });
+    </script>
+}

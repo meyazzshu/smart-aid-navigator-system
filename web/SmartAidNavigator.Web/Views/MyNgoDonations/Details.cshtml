@@ -1,0 +1,246 @@
+﻿@model SmartAidNavigator.Web.ViewModels.MyNgoDonationDetailVm
+
+@{
+    ViewData["Title"] = "Donation Details";
+    var d = Model.Donation;
+
+    var statusClass = d.Status switch
+    {
+        "PENDING" => "bg-warning text-dark",
+        "CONFIRMED" => "bg-primary",
+        "COMPLETED" => "bg-success",
+        "CANCELLED" => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="app-page-header">
+    <h2 class="page-title">
+        <i class="fa-solid fa-hand-holding-dollar me-2"></i>Donation #@d.DonationId
+    </h2>
+    <a asp-controller="MyNgoDonations" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info me-2 text-primary"></i>Donation Information
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4">Donation ID</dt>
+                    <dd class="col-sm-8">#@d.DonationId</dd>
+
+                    <dt class="col-sm-4">Type</dt>
+                    <dd class="col-sm-8">
+                        @if (d.DonationType == "MONEY")
+                        {
+                            <span class="badge bg-success">Money</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-info text-dark">Item</span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge @statusClass">@d.Status</span>
+                    </dd>
+
+                    <dt class="col-sm-4">Created At</dt>
+                    <dd class="col-sm-8">@d.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                    <dt class="col-sm-4">Remarks</dt>
+                    <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(d.Remarks) ? "-" : d.Remarks)</dd>
+                </dl>
+            </div>
+        </div>
+
+        @if (d.DonationType == "ITEM")
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>Donated Items
+                </div>
+                <div class="card-body p-0">
+                    @if (d.DonationItems.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Unit</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in d.DonationItems)
+                                {
+                                    <tr>
+                                        <td>@(item.Item?.ItemName ?? "-")</td>
+                                        <td class="text-muted">@(item.Item?.Unit ?? "-")</td>
+                                        <td><span class="badge bg-primary">@item.Quantity</span></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="p-3 text-muted small">
+                            <i class="fa-solid fa-inbox me-1"></i>No items recorded.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-location-dot me-2 text-danger"></i>Drop-off Information
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Drop-off Required</dt>
+                        <dd class="col-sm-8">@(d.DropoffRequired ? "Yes" : "No")</dd>
+
+                        <dt class="col-sm-4">Drop-off Confirmed</dt>
+                        <dd class="col-sm-8">@(d.DropoffConfirmed ? "Yes" : "No")</dd>
+
+                        <dt class="col-sm-4">Proof Photo</dt>
+                        <dd class="col-sm-8">
+                            @if (!string.IsNullOrWhiteSpace(d.ProofPhotoUrl))
+                            {
+                                <a href="@d.ProofPhotoUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa-solid fa-image me-1"></i>View Proof Photo
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">No proof photo</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        }
+
+        @if (d.DonationType == "MONEY")
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-credit-card me-2 text-success"></i>Payment Information
+                </div>
+                <div class="card-body">
+                    @if (d.Payment != null)
+                    {
+                        <dl class="row mb-0">
+                            <dt class="col-sm-4">Amount</dt>
+                            <dd class="col-sm-8">@d.Payment.Currency @d.Payment.Amount.ToString("N2")</dd>
+
+                            <dt class="col-sm-4">Method</dt>
+                            <dd class="col-sm-8">@d.Payment.Method</dd>
+
+                            <dt class="col-sm-4">Payment Status</dt>
+                            <dd class="col-sm-8">@d.Payment.PaymentStatus</dd>
+
+                            <dt class="col-sm-4">Provider Ref</dt>
+                            <dd class="col-sm-8">@(d.Payment.ProviderRef ?? "-")</dd>
+
+                            <dt class="col-sm-4">Paid At</dt>
+                            <dd class="col-sm-8">@(d.Payment.PaidAt?.ToString("dd MMM yyyy HH:mm") ?? "-")</dd>
+                        </dl>
+                    }
+                    else
+                    {
+                        <div class="text-muted small">
+                            <i class="fa-solid fa-inbox me-1"></i>No payment record found.
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-user me-2 text-primary"></i>Donor Information
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Name</dt>
+                    <dd>@(d.Donor?.Person?.FullName ?? "-")</dd>
+
+                    <dt>Email</dt>
+                    <dd>@(d.Donor?.Person?.Email ?? "-")</dd>
+
+                    <dt>Phone</dt>
+                    <dd>@(d.Donor?.Person?.Phone ?? "-")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-gears me-2 text-primary"></i>Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (d.Status == "PENDING")
+                    {
+                        <form asp-controller="MyNgoDonations" asp-action="Confirm" asp-route-id="@d.DonationId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa-solid fa-circle-check me-1"></i>Confirm Donation
+                            </button>
+                        </form>
+                    }
+
+                    @if (d.Status == "PENDING" || d.Status == "CONFIRMED")
+                    {
+                        <form asp-controller="MyNgoDonations" asp-action="Complete" asp-route-id="@d.DonationId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success w-100"
+                                    onclick="return confirm('Complete this donation?')">
+                                <i class="fa-solid fa-check-double me-1"></i>Complete Donation
+                            </button>
+                        </form>
+                    }
+
+                    @if (d.Status != "COMPLETED" && d.Status != "CANCELLED")
+                    {
+                        <form asp-controller="MyNgoDonations" asp-action="Cancel" asp-route-id="@d.DonationId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger w-100"
+                                    onclick="return confirm('Cancel this donation?')">
+                                <i class="fa-solid fa-ban me-1"></i>Cancel Donation
+                            </button>
+                        </form>
+                    }
+
+                    <a asp-controller="MyNgoDonations" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

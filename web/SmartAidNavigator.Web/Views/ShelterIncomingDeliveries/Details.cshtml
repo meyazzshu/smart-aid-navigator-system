@@ -1,0 +1,455 @@
+﻿@model SmartAidNavigator.Web.ViewModels.ShelterIncomingDeliveryDetailVm
+
+@{
+    ViewData["Title"] = $"Track Delivery #{Model.DeliveryId}";
+
+    string StatusDisplay(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "Out For Delivery",
+            _ => System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(status.ToString().ToLower())
+        };
+    }
+
+    string StatusBadge(SmartAidNavigator.Web.Models.DeliveryStatus status)
+    {
+        return status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED => "bg-secondary",
+            SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED => "bg-primary",
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => "bg-warning text-dark",
+            SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED => "bg-success",
+            SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    bool StepDone(SmartAidNavigator.Web.Models.DeliveryStatus step)
+    {
+        if (Model.Status == SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED)
+        {
+            return false;
+        }
+
+        var current = Model.Status switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED => 1,
+            SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED => 2,
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => 3,
+            SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED => 4,
+            _ => 0
+        };
+
+        var target = step switch
+        {
+            SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED => 1,
+            SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED => 2,
+            SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT => 3,
+            SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED => 4,
+            _ => 0
+        };
+
+        return current >= target;
+    }
+
+    bool IsCurrent(SmartAidNavigator.Web.Models.DeliveryStatus step)
+    {
+        return Model.Status == step;
+    }
+}
+
+<style>
+    .tracking-hero {
+        background: linear-gradient(135deg, #ee4d2d, #ff7337);
+        border-radius: 22px;
+        color: #fff;
+        padding: 22px;
+        box-shadow: 0 12px 28px rgba(238, 77, 45, 0.22);
+    }
+
+    .tracking-hero-badge {
+        background: rgba(255,255,255,.18);
+        border: 1px solid rgba(255,255,255,.25);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+
+    .tracking-stepper {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        position: relative;
+    }
+
+    .tracking-step {
+        text-align: center;
+        position: relative;
+        z-index: 2;
+    }
+
+        .tracking-step::before {
+            content: "";
+            position: absolute;
+            top: 22px;
+            left: -50%;
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            z-index: -1;
+        }
+
+        .tracking-step:first-child::before {
+            display: none;
+        }
+
+        .tracking-step.done::before,
+        .tracking-step.current::before {
+            background: #ee4d2d;
+        }
+
+    .tracking-step-icon {
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 8px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .tracking-step.done .tracking-step-icon,
+    .tracking-step.current .tracking-step-icon {
+        background: #ee4d2d;
+        color: #fff;
+    }
+
+    .tracking-step.current .tracking-step-icon {
+        box-shadow: 0 0 0 6px rgba(238,77,45,.14);
+    }
+
+    .tracking-step-title {
+        font-size: .82rem;
+        font-weight: 800;
+    }
+
+    .tracking-step-subtitle {
+        font-size: .72rem;
+        color: #6c757d;
+    }
+
+    .tracking-timeline {
+        position: relative;
+        padding-left: 28px;
+    }
+
+        .tracking-timeline::before {
+            content: "";
+            position: absolute;
+            left: 9px;
+            top: 5px;
+            bottom: 5px;
+            width: 2px;
+            background: #e9ecef;
+        }
+
+    .tracking-timeline-item {
+        position: relative;
+        padding-bottom: 18px;
+    }
+
+    .tracking-timeline-dot {
+        position: absolute;
+        left: -25px;
+        top: 3px;
+        width: 14px;
+        height: 14px;
+        background: #ee4d2d;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 2px #ee4d2d;
+    }
+
+    .tracking-item-card {
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 16px;
+        padding: 12px;
+        background: #fff;
+    }
+</style>
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-location-dot me-2"></i>Track Delivery #@Model.DeliveryId
+        </h2>
+        <p class="text-muted mb-0">
+            Shopee-style tracking for incoming NGO delivery.
+        </p>
+    </div>
+
+    <a asp-controller="ShelterIncomingDeliveries" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="tracking-hero mb-4">
+    <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+        <div>
+            <div class="tracking-hero-badge mb-3">
+                <i class="fa-solid fa-truck-fast me-1"></i>@StatusDisplay(Model.Status)
+            </div>
+
+            <h3 class="mb-1">Delivery from @Model.NgoName</h3>
+            <div style="opacity:.9;">
+                To @Model.ShelterName
+            </div>
+        </div>
+
+        <div class="text-end">
+            <div style="font-size:.8rem; opacity:.85;">Scheduled Date</div>
+            <div class="fw-bold fs-5">
+                @(Model.ScheduledDate.HasValue ? Model.ScheduledDate.Value.ToString("dd MMM yyyy") : "-")
+            </div>
+
+            @if (Model.EtaMinutes.HasValue)
+            {
+                <div class="mt-2">
+                    <span class="tracking-hero-badge">
+                        ETA @Model.EtaMinutes min
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Status == SmartAidNavigator.Web.Models.DeliveryStatus.CANCELLED)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-ban me-1"></i>
+        This delivery has been cancelled by the NGO.
+    </div>
+}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-route me-2 text-primary"></i>Delivery Progress
+    </div>
+
+    <div class="card-body">
+        <div class="tracking-stepper">
+            <div class="tracking-step @(StepDone(SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED) ? "done" : "") @(IsCurrent(SmartAidNavigator.Web.Models.DeliveryStatus.PLANNED) ? "current" : "")">
+                <div class="tracking-step-icon">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+                <div class="tracking-step-title">Planned</div>
+                <div class="tracking-step-subtitle">Order prepared</div>
+            </div>
+
+            <div class="tracking-step @(StepDone(SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED) ? "done" : "") @(IsCurrent(SmartAidNavigator.Web.Models.DeliveryStatus.ROUTED) ? "current" : "")">
+                <div class="tracking-step-icon">
+                    <i class="fa-solid fa-route"></i>
+                </div>
+                <div class="tracking-step-title">Routed</div>
+                <div class="tracking-step-subtitle">Route assigned</div>
+            </div>
+
+            <div class="tracking-step @(StepDone(SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT) ? "done" : "") @(IsCurrent(SmartAidNavigator.Web.Models.DeliveryStatus.IN_TRANSIT) ? "current" : "")">
+                <div class="tracking-step-icon">
+                    <i class="fa-solid fa-truck-fast"></i>
+                </div>
+                <div class="tracking-step-title">Out For Delivery</div>
+                <div class="tracking-step-subtitle">On the way</div>
+            </div>
+
+            <div class="tracking-step @(StepDone(SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED) ? "done" : "") @(IsCurrent(SmartAidNavigator.Web.Models.DeliveryStatus.DELIVERED) ? "current" : "")">
+                <div class="tracking-step-icon">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+                <div class="tracking-step-title">Delivered</div>
+                <div class="tracking-step-subtitle">Received</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span>
+                    <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>Package Items
+                </span>
+                <span class="badge bg-secondary">@Model.ItemTypeCount item type(s)</span>
+            </div>
+
+            <div class="card-body">
+                @if (Model.Items.Any())
+                {
+                    <div class="row g-3">
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="col-md-6">
+                                <div class="tracking-item-card">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="stat-card-icon orange">
+                                            <i class="fa-solid fa-box"></i>
+                                        </div>
+
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">@item.ItemName</div>
+                                            <div class="text-muted small">Item ID: @item.ItemId</div>
+                                        </div>
+
+                                        <div class="text-end">
+                                            <span class="badge bg-secondary">@item.Quantity</span>
+                                            <div class="text-muted small">@item.Unit</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small">
+                        <i class="fa-solid fa-inbox me-1"></i>No items found.
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Tracking History
+            </div>
+
+            <div class="card-body">
+                @if (Model.TrackingUpdates.Any())
+                {
+                    <div class="tracking-timeline">
+                        @foreach (var tracking in Model.TrackingUpdates.OrderByDescending(x => x.CreatedAt))
+                        {
+                            <div class="tracking-timeline-item">
+                                <div class="tracking-timeline-dot"></div>
+
+                                <div class="fw-bold">
+                                    @StatusDisplay(tracking.Status)
+                                </div>
+
+                                <div class="text-muted small mb-1">
+                                    @tracking.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                </div>
+
+                                <div>
+                                    @(string.IsNullOrWhiteSpace(tracking.Note) ? "Delivery status updated." : tracking.Note)
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-muted small">
+                        <i class="fa-solid fa-inbox me-1"></i>No tracking updates yet.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info me-2 text-primary"></i>Delivery Summary
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-6">
+                        <div class="text-muted small">Current Status</div>
+                        <span class="badge @StatusBadge(Model.Status)">
+                            @StatusDisplay(Model.Status)
+                        </span>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="text-muted small">NGO Sender</div>
+                        <div class="fw-semibold">@Model.NgoName</div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="text-muted small">Total Quantity</div>
+                        <div class="fw-semibold">@Model.TotalQuantity item(s)</div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="text-muted small">Distance</div>
+                        <div class="fw-semibold">
+                            @(Model.DistanceKm.HasValue
+                                ? $"{Model.DistanceKm.Value:N1} km"
+                                : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="text-muted small">ETA</div>
+                        <div class="fw-semibold">
+                            @(Model.EtaMinutes.HasValue
+                                ? $"{Model.EtaMinutes} min"
+                                : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="text-muted small">Notes</div>
+                        <div class="fw-semibold">
+                            @(string.IsNullOrWhiteSpace(Model.Notes)
+                                ? "-"
+                                : Model.Notes)
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ImageLink))
+        {
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-image me-2 text-primary"></i>
+                    Proof of Delivery
+                </div>
+
+                <div class="card-body">
+
+                    <a href="@Model.ImageLink" target="_blank">
+                        <img src="@Model.ImageLink"
+                             class="img-fluid rounded border mb-3"
+                             style="width:100%; max-height:400px; object-fit:cover;" />
+                    </a>
+
+                    <a href="@Model.ImageLink"
+                       target="_blank"
+                       class="btn btn-outline-primary w-100">
+                        <i class="fa-solid fa-up-right-from-square me-1"></i>
+                        View Full Size Image
+                    </a>
+
+                </div>
+            </div>
+        }
+    </div>
+</div>

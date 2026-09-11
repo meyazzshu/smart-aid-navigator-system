@@ -1,0 +1,413 @@
+﻿@model SmartAidNavigator.Web.Models.Ngo
+
+@{
+    ViewData["Title"] = "Edit NGO";
+
+    var malaysiaStates = new[]
+    {
+        "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
+        "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah",
+        "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur",
+        "Labuan", "Putrajaya"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-building-ngo me-2"></i>Edit NGO
+        </h2>
+        <p class="text-muted mb-0">Update NGO profile, approval status, tax details, and Google location.</p>
+    </div>
+
+    <a asp-action="Details" asp-route-id="@Model.NgoId" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<form asp-action="Edit" method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="NgoId" />
+    <input type="hidden" asp-for="CreatedAt" />
+    <input type="hidden" asp-for="ApprovedBy" />
+    <input type="hidden" asp-for="ApprovedAt" />
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card org-edit-summary-card">
+                <div class="card-body text-center">
+                    <div class="org-detail-avatar mx-auto mb-3">
+                        <i class="fa-solid fa-building-ngo"></i>
+                    </div>
+
+                    <h4 class="mb-1">@Model.NgoName</h4>
+                    <div class="text-muted mb-3">NGO Organization</div>
+
+                    <div class="mb-3">
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">
+                                <i class="fa-solid fa-circle-check me-1"></i>Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i class="fa-solid fa-circle-xmark me-1"></i>Inactive / Pending
+                            </span>
+                        }
+                    </div>
+
+                    <div class="staff-edit-mini-info">
+                        <div>
+                            <i class="fa-solid fa-hashtag me-2 text-primary"></i>
+                            <span>NGO ID: #@Model.NgoId</span>
+                        </div>
+                        <div>
+                            <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                            <span>@(Model.City ?? "No city saved")</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Save Changes
+                    </button>
+
+                    <a asp-action="Details" asp-route-id="@Model.NgoId" class="btn btn-info w-100 mb-2">
+                        <i class="fa-solid fa-eye me-1"></i>View Details
+                    </a>
+
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Organization Details
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="NgoName" class="form-label fw-semibold">
+                                <i class="fa-solid fa-building-ngo me-1 text-primary"></i>NGO Name
+                            </label>
+                            <input asp-for="NgoName" class="form-control" />
+                            <span asp-validation-for="NgoName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="IsActive" class="form-label fw-semibold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>Status
+                            </label>
+                            <select asp-for="IsActive" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive / Pending</option>
+                            </select>
+                            <span asp-validation-for="IsActive" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label fw-semibold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>Phone
+                            </label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>Email
+                            </label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-semibold">
+                                <i class="fa-solid fa-align-left me-1 text-primary"></i>Description
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-receipt me-2 text-primary"></i>Tax Exemption Details
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="IsTaxExempt" class="form-label fw-semibold">
+                                <i class="fa-solid fa-certificate me-1 text-primary"></i>Tax Exempt
+                            </label>
+                            <select asp-for="IsTaxExempt" class="form-select">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <span asp-validation-for="IsTaxExempt" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="TaxExemptionNo" class="form-label fw-semibold">
+                                <i class="fa-solid fa-file-invoice me-1 text-primary"></i>Tax Exemption Number
+                            </label>
+                            <input asp-for="TaxExemptionNo" class="form-control" />
+                            <span asp-validation-for="TaxExemptionNo" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-location-dot me-2 text-primary"></i>Google Location
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Search and select a location from Google to auto-fill address and coordinates.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-magnifying-glass-location me-1 text-primary"></i>Search Location
+                        </label>
+                        <input type="text"
+                               id="ngoGoogleLocationSearch"
+                               class="form-control"
+                               placeholder="Search NGO address, building, street, or area..." />
+                    </div>
+
+                    <div id="ngoEditMap" class="org-edit-map mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="AddressLine" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map-location-dot me-1 text-primary"></i>Address Line
+                            </label>
+                            <input asp-for="AddressLine" id="AddressLine" class="form-control" />
+                            <span asp-validation-for="AddressLine" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold">
+                                <i class="fa-solid fa-city me-1 text-primary"></i>City
+                            </label>
+                            <input asp-for="City" id="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map me-1 text-primary"></i>State
+                            </label>
+                            <select asp-for="State" id="State" class="form-select">
+                                <option value="">-- Select State --</option>
+                                @foreach (var state in malaysiaStates)
+                                {
+                                    <option value="@state">@state</option>
+                                }
+                            </select>
+                            <span asp-validation-for="State" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PostalCode" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelopes-bulk me-1 text-primary"></i>Postal Code
+                            </label>
+                            <input asp-for="PostalCode" id="PostalCode" class="form-control" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Latitude" class="form-label fw-semibold">
+                                <i class="fa-solid fa-location-crosshairs me-1 text-primary"></i>Latitude
+                            </label>
+                            <input asp-for="Latitude" id="Latitude" class="form-control" readonly />
+                            <span asp-validation-for="Latitude" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Longitude" class="form-label fw-semibold">
+                                <i class="fa-solid fa-location-crosshairs me-1 text-primary"></i>Longitude
+                            </label>
+                            <input asp-for="Longitude" id="Longitude" class="form-control" readonly />
+                            <span asp-validation-for="Longitude" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a asp-action="Details" asp-route-id="@Model.NgoId" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let ngoEditMap;
+        let ngoEditMarker;
+        let ngoEditAutocomplete;
+
+        function initNgoEditMap() {
+            const mapElement = document.getElementById('ngoEditMap');
+            const searchInput = document.getElementById('ngoGoogleLocationSearch');
+
+            if (!mapElement || !searchInput) return;
+
+            const latInput = document.getElementById('Latitude');
+            const lngInput = document.getElementById('Longitude');
+            const addressInput = document.getElementById('AddressLine');
+            const cityInput = document.getElementById('City');
+            const stateInput = document.getElementById('State');
+            const postalInput = document.getElementById('PostalCode');
+
+            const savedLat = parseFloat(latInput.value);
+            const savedLng = parseFloat(lngInput.value);
+
+            const defaultLocation = {
+                lat: !isNaN(savedLat) ? savedLat : 3.1390,
+                lng: !isNaN(savedLng) ? savedLng : 101.6869
+            };
+
+            ngoEditMap = new google.maps.Map(mapElement, {
+                center: defaultLocation,
+                zoom: !isNaN(savedLat) && !isNaN(savedLng) ? 16 : 12,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            ngoEditMarker = new google.maps.Marker({
+                map: ngoEditMap,
+                position: defaultLocation,
+                draggable: true
+            });
+
+            ngoEditMarker.addListener('dragend', function () {
+                const pos = ngoEditMarker.getPosition();
+                latInput.value = pos.lat().toFixed(7);
+                lngInput.value = pos.lng().toFixed(7);
+            });
+
+            ngoEditAutocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'my' },
+                fields: ['address_components', 'formatted_address', 'geometry', 'name']
+            });
+
+            ngoEditAutocomplete.addListener('place_changed', function () {
+                const place = ngoEditAutocomplete.getPlace();
+
+                if (!place.geometry || !place.geometry.location) {
+                    alert('Selected location does not have coordinates.');
+                    return;
+                }
+
+                const location = place.geometry.location;
+
+                ngoEditMap.setCenter(location);
+                ngoEditMap.setZoom(16);
+                ngoEditMarker.setPosition(location);
+
+                latInput.value = location.lat().toFixed(7);
+                lngInput.value = location.lng().toFixed(7);
+
+                const parsed = parseOrgAddressComponents(place.address_components || []);
+
+                addressInput.value = place.formatted_address || place.name || '';
+                cityInput.value = parsed.city || '';
+                stateInput.value = normalizeMalaysiaState(parsed.state || '');
+                postalInput.value = parsed.postalCode || '';
+            });
+        }
+
+        function parseOrgAddressComponents(components) {
+            let city = '';
+            let state = '';
+            let postalCode = '';
+
+            components.forEach(function (component) {
+                const types = component.types || [];
+
+                if (types.includes('postal_code')) {
+                    postalCode = component.long_name;
+                }
+
+                if (
+                    types.includes('locality') ||
+                    types.includes('postal_town') ||
+                    types.includes('administrative_area_level_2')
+                ) {
+                    if (!city) city = component.long_name;
+                }
+
+                if (types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            });
+
+            return { city, state, postalCode };
+        }
+
+        function normalizeMalaysiaState(state) {
+            const value = (state || '').toLowerCase();
+
+            const map = {
+                'johor': 'Johor',
+                'kedah': 'Kedah',
+                'kelantan': 'Kelantan',
+                'melaka': 'Melaka',
+                'malacca': 'Melaka',
+                'negeri sembilan': 'Negeri Sembilan',
+                'pahang': 'Pahang',
+                'perak': 'Perak',
+                'perlis': 'Perlis',
+                'pulau pinang': 'Pulau Pinang',
+                'penang': 'Pulau Pinang',
+                'sabah': 'Sabah',
+                'sarawak': 'Sarawak',
+                'selangor': 'Selangor',
+                'terengganu': 'Terengganu',
+                'kuala lumpur': 'Kuala Lumpur',
+                'federal territory of kuala lumpur': 'Kuala Lumpur',
+                'wilayah persekutuan kuala lumpur': 'Kuala Lumpur',
+                'labuan': 'Labuan',
+                'putrajaya': 'Putrajaya',
+                'federal territory of putrajaya': 'Putrajaya',
+                'wilayah persekutuan putrajaya': 'Putrajaya'
+            };
+
+            return map[value] || state;
+        }
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initNgoEditMap"></script>
+    }
+}

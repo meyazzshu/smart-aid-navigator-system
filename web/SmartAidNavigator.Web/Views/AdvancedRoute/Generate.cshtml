@@ -1,0 +1,52 @@
+@* @model SmartAidNavigator.Web.ViewModels.GenerateAdvancedRouteVm *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Generate Advanced Route"; *@
+@* } *@
+
+@* <div class="app-page-header"> *@
+@*     <h2 class="page-title"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate Advanced Route</h2> *@
+@*     <a asp-action="Index" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back</a> *@
+@* </div> *@
+
+@* @if (!Model.AvailableDeliveries.Any()) *@
+@* { *@
+@*     <div class="alert alert-info"><i class="fa-solid fa-circle-info me-2"></i>No planned deliveries available for route generation.</div> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <div class="card"> *@
+@*         <div class="card-header"><i class="fa-solid fa-truck me-2"></i>Select Deliveries</div> *@
+@*         <div class="card-body p-0"> *@
+@*             <form asp-action="Generate" method="post"> *@
+@*                 @Html.AntiForgeryToken() *@
+@*                 <table class="table table-hover mb-0"> *@
+@*                     <thead> *@
+@*                         <tr> *@
+@*                             <th style="width:50px;">Select</th> *@
+@*                             <th><i class="fa-solid fa-hashtag me-1"></i>Delivery ID</th> *@
+@*                             <th><i class="fa-solid fa-house me-1"></i>Shelter</th> *@
+@*                             <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th> *@
+@*                         </tr> *@
+@*                     </thead> *@
+@*                     <tbody> *@
+@*                         @for (int i = 0; i < Model.AvailableDeliveries.Count; i++) *@
+@*                         { *@
+@*                             <tr> *@
+@*                                 <td> *@
+@*                                     <input type="checkbox" class="form-check-input" name="DeliveryIds" value="@Model.AvailableDeliveries[i].DeliveryId" /> *@
+@*                                 </td> *@
+@*                                 <td>#@Model.AvailableDeliveries[i].DeliveryId</td> *@
+@*                                 <td>@Model.AvailableDeliveries[i].ShelterName</td> *@
+@*                                 <td><span class="badge badge-planned">@Model.AvailableDeliveries[i].Status</span></td> *@
+@*                             </tr> *@
+@*                         } *@
+@*                     </tbody> *@
+@*                 </table> *@
+@*                 <div class="p-3"> *@
+@*                     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-route me-1"></i>Generate Route</button> *@
+@*                 </div> *@
+@*             </form> *@
+@*         </div> *@
+@*     </div> *@
+@* } *@

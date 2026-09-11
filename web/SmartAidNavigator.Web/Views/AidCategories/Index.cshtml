@@ -1,0 +1,392 @@
+@model List<SmartAidNavigator.Web.Models.AidCategory>
+
+@{
+    ViewData["Title"] = "Aid Categories";
+
+    var totalItems = Model.Sum(c => c.Items?.Count ?? 0);
+    var categoriesWithItems = Model.Count(c => (c.Items?.Count ?? 0) > 0);
+    var emptyCategories = Model.Count(c => (c.Items?.Count ?? 0) == 0);
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-tags me-2"></i>Aid Categories</h2>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa-solid fa-plus me-1"></i>Add Category
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-tags"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count</div>
+                <div class="stat-card-label">Total Categories</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-box-open"></i></div>
+            <div>
+                <div class="stat-card-value">@totalItems</div>
+                <div class="stat-card-label">Total Items</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+                <div class="stat-card-value">@categoriesWithItems</div>
+                <div class="stat-card-label">With Items</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-box-open"></i></div>
+            <div>
+                <div class="stat-card-value">@emptyCategories</div>
+                <div class="stat-card-label">Empty</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i>No categories found. Add your first category above.
+    </div>
+}
+else
+{
+    <div class="card aid-category-filter-card mb-4">
+        <div class="card-header">
+            <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Categories
+        </div>
+
+        <div class="card-body">
+            <div class="aid-category-filter-panel">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text"
+                           id="categorySearchInput"
+                           class="form-control"
+                           placeholder="Search category ID or category name..." />
+                </div>
+
+                <select id="categoryItemFilter" class="form-select">
+                    <option value="">All Categories</option>
+                    <option value="WITH_ITEMS">With Items</option>
+                    <option value="EMPTY">Empty Categories</option>
+                </select>
+
+                <select id="categorySortSelect" class="form-select">
+                    <option value="name-asc" selected>Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                    <option value="id-asc">Category ID: Low to High</option>
+                    <option value="id-desc">Category ID: High to Low</option>
+                    <option value="items-desc">Items: High to Low</option>
+                    <option value="items-asc">Items: Low to High</option>
+                </select>
+
+                <button type="button" id="clearCategoryFiltersBtn" class="btn btn-outline-secondary">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fa-solid fa-list me-2"></i>All Categories</span>
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border">15 records per page</span>
+                <span class="badge bg-secondary">@Model.Count record(s)</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" id="catTable">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-hashtag me-1"></i>ID</th>
+                        <th><i class="fa-solid fa-tag me-1"></i>Category Name</th>
+                        <th><i class="fa-solid fa-box me-1"></i>Items</th>
+                        <th style="width:180px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="categoryTableBody">
+                    @foreach (var c in Model)
+                    {
+                        var itemCount = c.Items?.Count ?? 0;
+                        var itemStatus = itemCount > 0 ? "WITH_ITEMS" : "EMPTY";
+                        var searchText = $"{c.CategoryId} {c.CategoryName} {itemStatus}".ToLower();
+
+                        <tr class="category-record-row"
+                            data-search="@searchText"
+                            data-category-id="@c.CategoryId"
+                            data-name="@((c.CategoryName ?? "").ToLower())"
+                            data-items="@itemCount"
+                            data-item-status="@itemStatus">
+
+                            <td>
+                                <span class="fw-semibold text-primary">#@c.CategoryId</span>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-tag me-1 text-muted"></i>
+                                <strong>@c.CategoryName</strong>
+                            </td>
+
+                            <td>
+                                @if (itemCount > 0)
+                                {
+                                    <span class="badge bg-primary">@itemCount item(s)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">0 item</span>
+                                }
+                            </td>
+
+                            <td>
+                                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@c.CategoryId" title="Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@c.CategoryId" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@c.CategoryId" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="category-table-pagination" id="categoryTablePagination">
+                <div class="category-table-page-info" id="categoryTablePageInfo">
+                    Showing 0 - 0 of 0 categories
+                </div>
+
+                <div class="category-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="categoryTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="category-table-page-number" id="categoryTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="categoryTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 text-center text-muted d-none" id="noCategorySearchResult">
+                <i class="fa-solid fa-search fa-2x mb-2 text-primary"></i>
+                <div class="fw-semibold">No matching categories found.</div>
+                <div class="small">Try changing your search or filters.</div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const searchInput = document.getElementById('categorySearchInput');
+            const itemFilter = document.getElementById('categoryItemFilter');
+            const sortSelect = document.getElementById('categorySortSelect');
+            const clearBtn = document.getElementById('clearCategoryFiltersBtn');
+
+            const tableBody = document.getElementById('categoryTableBody');
+            const rows = Array.from(document.querySelectorAll('tr.category-record-row'));
+
+            const pagination = document.getElementById('categoryTablePagination');
+            const pageInfo = document.getElementById('categoryTablePageInfo');
+            const pageNumber = document.getElementById('categoryTablePageNumber');
+            const prevBtn = document.getElementById('categoryTablePrevBtn');
+            const nextBtn = document.getElementById('categoryTableNextBtn');
+            const noResult = document.getElementById('noCategorySearchResult');
+
+            let currentPage = 1;
+            let filteredRows = [...rows];
+
+            function sortRows() {
+                if (!tableBody || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                rows.sort((a, b) => {
+                    const aId = parseInt(a.dataset.categoryId || '0', 10);
+                    const bId = parseInt(b.dataset.categoryId || '0', 10);
+
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+
+                    const aItems = parseInt(a.dataset.items || '0', 10);
+                    const bItems = parseInt(b.dataset.items || '0', 10);
+
+                    switch (mode) {
+                        case 'name-desc':
+                            return bName.localeCompare(aName) || aId - bId;
+
+                        case 'id-asc':
+                            return aId - bId;
+
+                        case 'id-desc':
+                            return bId - aId;
+
+                        case 'items-desc':
+                            return bItems - aItems || aName.localeCompare(bName);
+
+                        case 'items-asc':
+                            return aItems - bItems || aName.localeCompare(bName);
+
+                        case 'name-asc':
+                        default:
+                            return aName.localeCompare(bName) || aId - bId;
+                    }
+                });
+
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            function filterRows() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const itemStatus = itemFilter ? itemFilter.value : '';
+
+                filteredRows = rows.filter(row => {
+                    const text = row.dataset.search || '';
+                    const rowItemStatus = row.dataset.itemStatus || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesItemStatus = !itemStatus || rowItemStatus === itemStatus;
+
+                    return matchesSearch && matchesItemStatus;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredRows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const visibleSet = new Set(filteredRows.slice(startIndex, endIndex));
+
+                rows.forEach(row => {
+                    row.classList.toggle('d-none', !visibleSet.has(row));
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', total > 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} categories`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            function refreshTable() {
+                sortRows();
+                filterRows();
+                renderPage();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (itemFilter) {
+                itemFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    currentPage = 1;
+                    sortRows();
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (itemFilter) itemFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'name-asc';
+
+                    refreshTable();
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refreshTable();
+        });
+    </script>
+}

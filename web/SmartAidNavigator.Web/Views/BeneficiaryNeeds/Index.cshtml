@@ -1,0 +1,410 @@
+﻿@model SmartAidNavigator.Web.ViewModels.BeneficiaryNeedIndexVm
+
+@{
+    ViewData["Title"] = "Beneficiary Needs";
+
+    string PrioritySelected(string value)
+    {
+        return Model.Priority == value ? "selected" : "";
+    }
+
+    string SortSelected(string value)
+    {
+        return Model.SortBy == value ? "selected" : "";
+    }
+
+    string StatusSelected(string value)
+    {
+        return Model.Status == value ? "selected" : "";
+    }
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-hand-holding-heart me-2"></i>Beneficiary Needs
+        </h2>
+        <p class="text-muted mb-0">
+            Manage aid needs logged for beneficiaries in this shelter.
+        </p>
+    </div>
+
+    <a asp-controller="Beneficiaries" asp-action="Index" class="btn btn-primary">
+        <i class="fa-solid fa-plus me-1"></i>Log Need
+    </a>
+</div>
+
+<div class="alert alert-info d-flex align-items-center gap-2 mb-3">
+    <i class="fa-solid fa-house-circle-check fa-lg"></i>
+    <span>Showing needs for <strong>@Model.ShelterName</strong></span>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a asp-controller="BeneficiaryNeeds" asp-action="Index" asp-route-sortBy="newest" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-list-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.TotalCount</div>
+                <div class="stat-card-label">Total Needs</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="BeneficiaryNeeds" asp-action="Index" asp-route-status="SUBMITTED" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-paper-plane"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.SubmittedCount</div>
+                <div class="stat-card-label">Submitted</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="BeneficiaryNeeds" asp-action="Index" asp-route-status="AWAITING_DONATION" class="stat-card text-decoration-none">
+            <div class="stat-card-icon red"><i class="fa-solid fa-hand-holding-heart"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.AwaitingDonationCount</div>
+                <div class="stat-card-label">Awaiting Donation</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <a asp-controller="BeneficiaryNeeds" asp-action="Index" asp-route-status="READY_FOR_PICKUP" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-box-open"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.ReadyForPickupCount</div>
+                <div class="stat-card-label">Ready For Pickup</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Beneficiary Needs
+    </div>
+
+    <div class="card-body">
+        <form method="get" asp-controller="BeneficiaryNeeds" asp-action="Index" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Request Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="SUBMITTED" selected="@StatusSelected("SUBMITTED")">Submitted</option>
+                    <option value="UNDER_REVIEW" selected="@StatusSelected("UNDER_REVIEW")">Under Review</option>
+                    <option value="APPROVED" selected="@StatusSelected("APPROVED")">Approved</option>
+                    <option value="REJECTED" selected="@StatusSelected("REJECTED")">Rejected</option>
+                    <option value="AWAITING_DONATION" selected="@StatusSelected("AWAITING_DONATION")">Awaiting Donation</option>
+                    <option value="READY_FOR_PICKUP" selected="@StatusSelected("READY_FOR_PICKUP")">Ready For Pickup</option>
+                    <option value="FULFILLED" selected="@StatusSelected("FULFILLED")">Fulfilled</option>
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="CRITICAL" selected="@PrioritySelected("CRITICAL")">Critical</option>
+                    <option value="HIGH" selected="@PrioritySelected("HIGH")">High</option>
+                    <option value="MEDIUM" selected="@PrioritySelected("MEDIUM")">Medium</option>
+                    <option value="LOW" selected="@PrioritySelected("LOW")">Low</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Sort By</label>
+                <select name="sortBy" class="form-select">
+                    <option value="newest" selected="@SortSelected("newest")">Newest Logged</option>
+                    <option value="oldest" selected="@SortSelected("oldest")">Oldest Logged</option>
+                    <option value="high-critical" selected="@SortSelected("high-critical")">High / Critical First</option>
+                    <option value="medium" selected="@SortSelected("medium")">Medium First</option>
+                    <option value="low" selected="@SortSelected("low")">Low First</option>
+                    <option value="qty-high" selected="@SortSelected("qty-high")">Quantity High-Low</option>
+                    <option value="qty-low" selected="@SortSelected("qty-low")">Quantity Low-High</option>
+                    <option value="beneficiary-az" selected="@SortSelected("beneficiary-az")">Beneficiary A-Z</option>
+                    <option value="item-az" selected="@SortSelected("item-az")">Item A-Z</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Search</label>
+                <input name="search"
+                       value="@Model.Search"
+                       class="form-control"
+                       placeholder="Search beneficiary, item, or notes..." />
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>Apply
+                </button>
+
+                <a asp-controller="BeneficiaryNeeds" asp-action="Index" class="btn btn-outline-secondary">
+                    Reset
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2 text-primary"></i>Needs List</span>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-dark border">15 records per page</span>
+            <span class="badge bg-secondary">@Model.Rows.Count record(s)</span>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Rows.Any())
+        {
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-user me-1"></i>Beneficiary</th>
+                        <th><i class="fa-solid fa-box me-1"></i>Aid Item Needed</th>
+                        <th><i class="fa-solid fa-hashtag me-1"></i>Required Qty</th>
+                        <th><i class="fa-solid fa-arrow-up-wide-short me-1"></i>Priority</th>
+                        <th><i class="fa-solid fa-route me-1"></i>Status</th>
+                        <th><i class="fa-solid fa-note-sticky me-1"></i>Notes</th>
+                        <th><i class="fa-solid fa-calendar me-1"></i>Date Logged</th>
+                        <th style="width:340px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var need in Model.Rows)
+                    {
+                        var (pbg, picon) = need.Priority switch
+                        {
+                            "CRITICAL" => ("bg-danger", "fa-circle-exclamation"),
+                            "HIGH" => ("bg-danger", "fa-arrow-up"),
+                            "MEDIUM" => ("bg-warning text-dark", "fa-minus"),
+                            "LOW" => ("bg-success", "fa-arrow-down"),
+                            _ => ("bg-secondary", "fa-question")
+                        };
+
+                        var rowClass = need.Priority == "CRITICAL" || need.Priority == "HIGH"
+                        ? "table-warning"
+                        : "";
+
+                        <tr class="need-record-row @rowClass">
+                            <td>
+                                <i class="fa-solid fa-circle-user me-1 text-muted"></i>
+                                <strong>@(need.Beneficiary?.Person?.FullName ?? "-")</strong>
+                                <div class="text-muted small">Need ID: @need.NeedId</div>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-box me-1 text-muted"></i>
+                                @(need.Item?.ItemName ?? "-")
+                            </td>
+
+                            <td>
+                                <span class="badge bg-secondary">@need.RequiredQuantity</span>
+                            </td>
+
+                            <td>
+                                <span class="badge @pbg">
+                                    <i class="fa-solid @picon me-1"></i>@need.Priority
+                                </span>
+                            </td>
+
+                            <td>
+                                @{
+                                    var statusClass = need.RequestStatus switch
+                                    {
+                                        "SUBMITTED" => "bg-warning text-dark",
+                                        "UNDER_REVIEW" => "bg-info text-dark",
+                                        "APPROVED" => "bg-primary",
+                                        "REJECTED" => "bg-danger",
+                                        "AWAITING_DONATION" => "bg-danger",
+                                        "READY_FOR_PICKUP" => "bg-success",
+                                        "FULFILLED" => "bg-secondary",
+                                        _ => "bg-secondary"
+                                    };
+
+                                    var statusLabel = need.RequestStatus.Replace("_", " ");
+                                }
+
+                                <span class="badge @statusClass">@statusLabel</span>
+                            </td>
+
+                            <td class="text-muted small">@(need.Notes ?? "-")</td>
+
+                            <td class="text-muted small">@need.CreatedAt.ToString("dd MMM yyyy")</td>
+
+                            <td class="text-nowrap">
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <a class="btn btn-sm btn-info"
+                                       asp-action="Details"
+                                       asp-route-id="@need.NeedId"
+                                       title="View Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    <a class="btn btn-sm btn-warning"
+                                       asp-action="Edit"
+                                       asp-route-id="@need.NeedId"
+                                       title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    <a class="btn btn-sm btn-danger"
+                                       asp-action="Delete"
+                                       asp-route-id="@need.NeedId"
+                                       title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+
+                                    @if (need.RequestStatus == "SUBMITTED")
+                                    {
+                                        <form asp-action="Review" asp-route-id="@need.NeedId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" title="Move to Review">
+                                                Review
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (need.RequestStatus == "SUBMITTED" || need.RequestStatus == "UNDER_REVIEW")
+                                    {
+                                        <form asp-action="Approve" asp-route-id="@need.NeedId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-success" title="Approve and Check Inventory">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                        <form asp-action="Reject" asp-route-id="@need.NeedId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Reject Request">
+                                                Reject
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (need.RequestStatus == "AWAITING_DONATION")
+                                    {
+                                        <form asp-action="RefreshAvailability" asp-route-id="@need.NeedId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Check Inventory Again">
+                                                Check Stock
+                                            </button>
+                                        </form>
+                                    }
+
+                                    @if (need.RequestStatus == "READY_FOR_PICKUP")
+                                    {
+                                        <form asp-action="Fulfill" asp-route-id="@need.NeedId" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-primary" title="Complete Distribution">
+                                                Fulfill
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="donation-table-pagination" id="needTablePagination">
+                <div class="donation-table-page-info" id="needTablePageInfo">
+                    Showing 0 - 0 of 0 needs
+                </div>
+
+                <div class="donation-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="needTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="donation-table-page-number" id="needTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="needTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted small">
+                <i class="fa-solid fa-inbox me-1"></i>No beneficiary needs found for the selected filter.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const rows = Array.from(document.querySelectorAll('tr.need-record-row'));
+            const pagination = document.getElementById('needTablePagination');
+            const pageInfo = document.getElementById('needTablePageInfo');
+            const pageNumber = document.getElementById('needTablePageNumber');
+            const prevBtn = document.getElementById('needTablePrevBtn');
+            const nextBtn = document.getElementById('needTableNextBtn');
+
+            let currentPage = 1;
+
+            function renderPage() {
+                const total = rows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+
+                rows.forEach((row, index) => {
+                    const shouldHide = index < startIndex || index >= endIndex;
+                    row.classList.toggle('d-none', shouldHide);
+                });
+
+                if (pagination) pagination.classList.toggle('d-none', total === 0);
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} needs`;
+                }
+
+                if (pageNumber) pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(rows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            renderPage();
+        });
+    </script>
+}

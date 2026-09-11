@@ -1,0 +1,58 @@
+﻿@model SmartAidNavigator.Web.ViewModels.MyNgoStockAdjustVm
+
+@{
+    ViewData["Title"] = "Manage NGO Inventory";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title">
+        <i class="fa-solid fa-pen-to-square me-2"></i>Adjust Inventory
+    </h2>
+    <a asp-controller="MyNgoInventory" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <i class="fa-solid fa-box me-2 text-primary"></i>@ViewBag.ItemName
+    </div>
+
+    <div class="card-body">
+        <form asp-controller="MyNgoInventory" asp-action="Adjust" method="post">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" asp-for="ItemId" />
+
+            <div class="mb-3">
+                <label asp-for="TransactionType" class="form-label">Transaction Type</label>
+                <select asp-for="TransactionType" class="form-select">
+                    <option value="IN">Stock In</option>
+                    <option value="OUT">Stock Out</option>
+                    <option value="ADJUST">Set Exact Quantity</option>
+                </select>
+                <span asp-validation-for="TransactionType" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Quantity" class="form-label">Quantity</label>
+                <input asp-for="Quantity" class="form-control" type="number" min="0" />
+                <span asp-validation-for="Quantity" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Note" class="form-label">Note</label>
+                <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Save
+                </button>
+                <a asp-controller="MyNgoInventory" asp-action="Index" class="btn btn-outline-secondary">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

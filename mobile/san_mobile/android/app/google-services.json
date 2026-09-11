@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "913886346495",
+    "project_id": "smart-aid-navigator",
+    "storage_bucket": "smart-aid-navigator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913886346495:android:4c7fe3c1fd60c9145660ca",
+        "android_client_info": {
+          "package_name": "com.sanstudio.san_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCExpXb3gn6lPLJG5q6jXcIsZ8DuuwZ2E0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

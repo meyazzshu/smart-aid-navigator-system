@@ -1,0 +1,183 @@
+﻿@model SmartAidNavigator.Web.ViewModels.BeneficiaryDetailsVm
+@using SmartAidNavigator.Web.Helpers
+
+@{
+    ViewData["Title"] = "Beneficiary Details";
+
+    var age = PersonHelper.CalculateAge(Model.DateOfBirth);
+
+    var addressParts = new[]
+    {
+        Model.AddressLine,
+        Model.City,
+        Model.State,
+        Model.PostalCode
+    }.Where(x => !string.IsNullOrWhiteSpace(x));
+
+    var fullAddress = string.Join(", ", addressParts);
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-circle-user me-2"></i>Beneficiary Details
+        </h2>
+        <p class="text-muted mb-0">View full beneficiary, shelter, and personal information.</p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="staff-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <h4 class="mb-1">@Model.FullName</h4>
+
+                <div class="text-muted mb-2">
+                    Beneficiary ID: #@Model.BeneficiaryId
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge bg-success">
+                        <i class="fa-solid fa-circle-check me-1"></i>@Model.Status
+                    </span>
+
+                    @if (age.HasValue)
+                    {
+                        <span class="badge @(age < 18 ? "bg-warning text-dark" : "bg-secondary") ms-1">
+                            Age: @age
+                        </span>
+                    }
+                </div>
+
+                <div class="d-grid gap-2">
+                    @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                    {
+                        <a href="tel:@Model.Phone" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-phone me-1"></i>Call Beneficiary
+                        </a>
+                    }
+
+                    <a asp-controller="BeneficiaryNeeds"
+                       asp-action="IndividualNeeds"
+                       asp-route-beneficiaryId="@Model.BeneficiaryId"
+                       class="btn btn-secondary">
+                        <i class="fa-solid fa-hand-holding-heart me-1"></i>View Needs
+                    </a>
+
+                    <a asp-action="Edit"
+                       asp-route-id="@Model.BeneficiaryId"
+                       class="btn btn-warning">
+                        <i class="fa-solid fa-pen me-1"></i>Edit Beneficiary
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-user-gear me-2 text-primary"></i>Beneficiary Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Beneficiary ID</div>
+                        <div class="detail-value">#@Model.BeneficiaryId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Person ID</div>
+                        <div class="detail-value">#@Model.PersonId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Shelter</div>
+                        <div class="detail-value">@Model.ShelterName</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">@Model.Status</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Admitted At</div>
+                        <div class="detail-value">
+                            @(Model.AdmittedAt.HasValue ? Model.AdmittedAt.Value.ToString("dd MMM yyyy HH:mm") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Registered At</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-address-card me-2 text-primary"></i>Personal Details
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Full Name</div>
+                        <div class="detail-value">@Model.FullName</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">IC / Passport</div>
+                        <div class="detail-value">@(Model.IcOrPassport ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value">@(Model.Phone ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Gender</div>
+                        <div class="detail-value">@(Model.Gender ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Date of Birth</div>
+                        <div class="detail-value">
+                            @(Model.DateOfBirth.HasValue ? Model.DateOfBirth.Value.ToString("dd MMM yyyy") : "-")
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Age</div>
+                        <div class="detail-value">@(age.HasValue ? age.ToString() : "-")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-location-dot me-2 text-primary"></i>Address Information
+            </div>
+
+            <div class="card-body">
+                <div class="detail-label">Address</div>
+                <div class="detail-value">
+                    @(string.IsNullOrWhiteSpace(fullAddress) ? "-" : fullAddress)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

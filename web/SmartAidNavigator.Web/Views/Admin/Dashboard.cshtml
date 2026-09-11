@@ -1,0 +1,262 @@
+﻿@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-gauge me-2"></i>Admin Dashboard</h2>
+    <span class="text-muted small"><i class="fa-regular fa-clock me-1"></i>@DateTime.Now.ToString("dddd, dd MMM yyyy HH:mm")</span>
+</div>
+
+<!-- Stat cards row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-2">
+        <a asp-controller="Ngos" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-building-ngo"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.NgoCount</div>
+                <div class="stat-card-label">Active NGOs</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-2">
+        <a asp-controller="Shelters" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-house-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.ShelterCount</div>
+                <div class="stat-card-label">Active Shelters</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-2">
+        <a asp-controller="Users" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-users"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.UserCount</div>
+                <div class="stat-card-label">Active Users</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-2">
+        <a asp-controller="Delivery" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-truck"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.DeliveryCount</div>
+                <div class="stat-card-label">Deliveries</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-2">
+        <div class="stat-card">
+            <div class="stat-card-icon teal"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.BeneficiaryCount</div>
+                <div class="stat-card-label">Beneficiaries</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-2">
+        <a asp-controller="AidItems" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon primary"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.AidItemCount</div>
+                <div class="stat-card-label">Aid Items</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Delivery status + quick links row -->
+<div class="row g-4 mb-4">
+    <!-- Delivery breakdown chart -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fa-solid fa-chart-pie text-primary"></i>
+                <span>Delivery Status Breakdown</span>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <div class="chart-container" style="max-width:280px;">
+                    <canvas id="deliveryPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="fa-solid fa-bolt text-warning"></i>
+                <span>Quick Actions</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <a asp-controller="Ngos" asp-action="Create" class="quick-action-card text-center">
+                            <div class="qa-icon text-success"><i class="fa-solid fa-building-ngo"></i></div>
+                            <div class="fw-semibold small">Add NGO</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Shelters" asp-action="Create" class="quick-action-card text-center">
+                            <div class="qa-icon text-primary"><i class="fa-solid fa-house-circle-check"></i></div>
+                            <div class="fw-semibold small">Add Shelter</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Users" asp-action="Create" class="quick-action-card text-center">
+                            <div class="qa-icon text-purple"><i class="fa-solid fa-user-plus"></i></div>
+                            <div class="fw-semibold small">Create User</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="AidCategories" asp-action="Create" class="quick-action-card text-center">
+                            <div class="qa-icon text-warning"><i class="fa-solid fa-tags"></i></div>
+                            <div class="fw-semibold small">Add Aid Category</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="AidItems" asp-action="Create" class="quick-action-card text-center">
+                            <div class="qa-icon" style="color:var(--stat-teal)"><i class="fa-solid fa-boxes-stacked"></i></div>
+                            <div class="fw-semibold small">Add Aid Item</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="AidItems" asp-action="Index" class="quick-action-card text-center">
+                            <div class="qa-icon text-secondary"><i class="fa-solid fa-list-check"></i></div>
+                            <div class="fw-semibold small">View All Items</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent NGOs table -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-building-ngo me-2 text-success"></i>Recent NGOs</span>
+                <a asp-controller="Ngos" asp-action="Index" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Organisation Name</th>
+                            <th>City</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.RecentNgos != null)
+                        {
+                            foreach (var ngo in (List<SmartAidNavigator.Web.Models.Ngo>)ViewBag.RecentNgos)
+                            {
+                                <tr>
+                                    <td>
+                                        <i class="fa-solid fa-building-ngo me-1 text-muted"></i>
+                                        <a asp-controller="Ngos" asp-action="Details" asp-route-id="@ngo.NgoId">@ngo.NgoName</a>
+                                    </td>
+                                    <td>@(ngo.City ?? "-")</td>
+                                    <td>
+                                        @if (ngo.IsActive)
+                                        {
+                                            <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Shelters table -->
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-house-circle-check me-2 text-primary"></i>Recent Shelters</span>
+                <a asp-controller="Shelters" asp-action="Index" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Shelter Name</th>
+                            <th>NGO</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.RecentShelters != null)
+                        {
+                            foreach (var s in (List<SmartAidNavigator.Web.Models.Shelter>)ViewBag.RecentShelters)
+                            {
+                                <tr>
+                                    <td>
+                                        <i class="fa-solid fa-house me-1 text-muted"></i>
+                                        <a asp-controller="Shelters" asp-action="Details" asp-route-id="@s.ShelterId">@s.ShelterName</a>
+                                    </td>
+                                    <td>@(s.Ngo?.NgoName ?? "-")</td>
+                                    <td>
+                                        @if (s.IsActive)
+                                        {
+                                            <span class="badge bg-success"><i class="fa-solid fa-circle-check me-1"></i>Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fa-solid fa-circle-xmark me-1"></i>Inactive</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<!-- Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('deliveryPieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Planned', 'Routed', 'In Transit', 'Delivered', 'Cancelled'],
+            datasets: [{
+                data: [
+                    @ViewBag.DeliveryPlanned,
+                    @ViewBag.DeliveryRouted,
+                    @ViewBag.DeliveryInTransit,
+                    @ViewBag.DeliveryDelivered,
+                    @ViewBag.DeliveryCancelled
+                ],
+                backgroundColor: ['#6c757d','#0d6efd','#fd7e14','#198754','#dc3545'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            cutout: '65%',
+            plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 12 } } }
+            }
+        }
+    });
+</script>
+}
+

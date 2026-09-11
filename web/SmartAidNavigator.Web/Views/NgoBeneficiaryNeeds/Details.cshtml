@@ -1,0 +1,251 @@
+﻿@model SmartAidNavigator.Web.Models.BeneficiaryNeed
+
+@{
+    ViewData["Title"] = "Beneficiary Need Details";
+
+    var shelterStock = ViewBag.ShelterStock as int? ?? 0;
+    var ngoStock = ViewBag.NgoStock as int? ?? 0;
+    var shortage = Model.RequiredQuantity - ngoStock;
+
+    var priorityClass = Model.Priority switch
+    {
+        "CRITICAL" => "bg-danger",
+        "HIGH" => "bg-danger",
+        "MEDIUM" => "bg-warning text-dark",
+        "LOW" => "bg-success",
+        _ => "bg-secondary"
+    };
+
+    var statusClass = Model.RequestStatus switch
+    {
+        "SUBMITTED" => "bg-warning text-dark",
+        "UNDER_REVIEW" => "bg-info text-dark",
+        "APPROVED" => "bg-primary",
+        "REJECTED" => "bg-danger",
+        "AWAITING_DONATION" => "bg-danger",
+        "READY_FOR_PICKUP" => "bg-success",
+        "FULFILLED" => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-hand-holding-heart me-2"></i>Beneficiary Need Details
+        </h2>
+        <p class="text-muted mb-0">
+            View beneficiary need, shelter stock, and NGO stock availability.
+        </p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="staff-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+
+                <h4 class="mb-1">@(Model.Item?.ItemName ?? "-")</h4>
+
+                <div class="text-muted mb-2">
+                    Need ID: #@Model.NeedId
+                </div>
+
+                <div class="mb-3">
+                    <span class="badge @priorityClass">@Model.Priority</span>
+                    <span class="badge @statusClass ms-1">@Model.RequestStatus.Replace("_", " ")</span>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <a asp-controller="MyNgoInventory"
+                       asp-action="Adjust"
+                       asp-route-itemId="@Model.ItemId"
+                       class="btn btn-primary">
+                        <i class="fa-solid fa-warehouse me-1"></i>Manage NGO Stock
+                    </a>
+
+                    @if (Model.RequestStatus == "AWAITING_DONATION" && ngoStock > 0)
+                    {
+                        <a asp-controller="Delivery"
+                           asp-action="Create"
+                           asp-route-beneficiaryNeedId="@Model.NeedId"
+                           class="btn btn-success">
+                            <i class="fa-solid fa-truck me-1"></i>Create Delivery
+                        </a>
+                    }
+
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-list me-1"></i>Back to Needs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info me-2 text-primary"></i>Need Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Beneficiary</div>
+                        <div class="detail-value">@(Model.Beneficiary?.Person?.FullName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Shelter</div>
+                        <div class="detail-value">@(Model.Beneficiary?.Shelter?.ShelterName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Aid Item</div>
+                        <div class="detail-value">@(Model.Item?.ItemName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Category</div>
+                        <div class="detail-value">@(Model.Item?.Category?.CategoryName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Required Quantity</div>
+                        <div class="detail-value">@Model.RequiredQuantity @(Model.Item?.Unit ?? "")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Date Logged</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Priority</div>
+                        <div class="detail-value">
+                            <span class="badge @priorityClass">@Model.Priority</span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="badge @statusClass">@Model.RequestStatus.Replace("_", " ")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-boxes-stacked me-2 text-primary"></i>Stock Availability
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="detail-label">Shelter Stock</div>
+                        <div class="detail-value">
+                            <span class="badge @(shelterStock >= Model.RequiredQuantity ? "bg-success" : "bg-danger")">
+                                @shelterStock
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="detail-label">NGO Stock</div>
+
+                        <div class="detail-value">
+                            <span class="badge @(ngoStock >= Model.RequiredQuantity ? "bg-success" : "bg-warning text-dark")">
+                                @ngoStock
+                            </span>
+                        </div>
+
+                        <div class="mt-2">
+                            @if (ngoStock > 0)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    Ready For Delivery
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger">
+                                    <i class="fa-solid fa-box-open me-1"></i>
+                                    No NGO Stock Available
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="detail-label">Shortage</div>
+                        <div class="detail-value">
+                            @if (shortage > 0)
+                            {
+                                <span class="badge bg-danger">@shortage</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">No shortage</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                @* @if (Model.RequestStatus == "AWAITING_DONATION" && ngoStock <= 0) *@
+                @* { *@
+                @*     <div class="alert alert-warning mt-3 mb-0"> *@
+                @*         <div class="fw-semibold"> *@
+                @*             <i class="fa-solid fa-triangle-exclamation me-2"></i> *@
+                @*             No NGO Stock Available *@
+                @*         </div> *@
+
+                @*         <div class="small mt-1"> *@
+                @*             Your NGO currently has no available stock for *@
+                @*             <strong>@(Model.Item?.ItemName ?? "this item")</strong>. *@
+                @*             Please add stock before creating a delivery for this beneficiary need. *@
+                @*         </div> *@
+                @*     </div> *@
+                @* } *@
+            
+
+                @if (Model.RequestStatus == "AWAITING_DONATION" && ngoStock <= 0)
+                {
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <div class="fw-semibold">
+                            <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                            Insufficient NGO Inventory
+                        </div>
+
+                        <div class="small mt-1">
+                            Your NGO currently has no stock available for
+                            <strong>@(Model.Item?.ItemName ?? "this item")</strong>.
+
+                            This beneficiary need cannot be fulfilled until inventory is replenished.
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fa-solid fa-note-sticky me-2 text-primary"></i>Notes
+            </div>
+
+            <div class="card-body">
+                @(string.IsNullOrWhiteSpace(Model.Notes) ? "-" : Model.Notes)
+            </div>
+        </div>
+    </div>
+</div>

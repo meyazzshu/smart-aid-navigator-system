@@ -1,0 +1,405 @@
+﻿@model SmartAidNavigator.Web.ViewModels.StaffManagementIndexVm
+
+@{
+    ViewData["Title"] = Model.PageTitle;
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-user-tie me-2"></i>@Model.PageTitle
+        </h2>
+        <p class="text-muted mb-0">@Model.PageSubtitle</p>
+    </div>
+
+    <a asp-action="@Model.CreateAction" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus me-1"></i>Create Staff
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-users"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Rows.Count</div>
+                <div class="stat-card-label">Total Staff</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-user-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Rows.Count(x => x.IsActive)</div>
+                <div class="stat-card-label">Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon red"><i class="fa-solid fa-user-xmark"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Rows.Count(x => !x.IsActive)</div>
+                <div class="stat-card-label">Inactive</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-building"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Rows.Select(x => x.EntityId).Distinct().Count()</div>
+                <div class="stat-card-label">Linked Units</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Staff
+    </div>
+
+    <div class="card-body">
+        <div class="staff-filter-panel">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+                <input type="text" id="staffSearchInput" class="form-control"
+                       placeholder="Search name, email, phone, title, NGO/shelter..." />
+            </div>
+
+            <select id="staffStatusFilter" class="form-select">
+                <option value="">All Status</option>
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+            </select>
+
+            <select id="staffSortSelect" class="form-select">
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+                <option value="entity-asc">Unit A-Z</option>
+                <option value="status-asc">Status Active First</option>
+            </select>
+
+            <button type="button" id="staffClearBtn" class="btn btn-outline-secondary">
+                Clear
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="fa-solid fa-list me-2 text-primary"></i>Staff Records</span>
+        <span class="badge bg-secondary">@Model.Rows.Count record(s)</span>
+    </div>
+
+    <div class="card-body p-0">
+        @if (Model.Rows.Any())
+        {
+            <table class="table table-hover mb-0" id="staffTable">
+                <thead>
+                    <tr>
+                        <th>Staff</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Unit</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th style="width:220px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="staffTableBody">
+                    @foreach (var row in Model.Rows)
+                    {
+                        var status = row.IsActive ? "ACTIVE" : "INACTIVE";
+                        var search = $"{row.FullName} {row.Email} {row.Phone} {row.EntityName} {row.StaffTitle} {status}".ToLower();
+
+                        <tr class="staff-record-row"
+                            data-search="@search"
+                            data-name="@row.FullName.ToLower()"
+                            data-entity="@row.EntityName.ToLower()"
+                            data-status="@status">
+
+                            <td>
+                                <div class="fw-semibold">
+                                    <i class="fa-solid fa-circle-user me-1 text-muted"></i>@row.FullName
+                                </div>
+
+                                @if (row.IsSelf)
+                                {
+                                    <span class="badge bg-info text-dark mt-1">You</span>
+                                }
+                            </td>
+
+                            <td>
+                                <a href="mailto:@row.Email">@row.Email</a>
+                            </td>
+
+                            <td>@(row.Phone ?? "-")</td>
+
+                            <td>
+                                <span class="fw-semibold">@row.EntityName</span>
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border">@row.StaffTitle</span>
+                            </td>
+
+                            <td>
+                                @if (row.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <a asp-action="Details"
+                                       asp-route-userId="@row.UserId"
+                                       asp-route-from="@Model.BackAction"
+                                       class="btn btn-sm btn-info"
+                                       title="View Staff Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+
+                                    <a asp-action="Edit"
+                                       asp-route-userId="@row.UserId"
+                                       asp-route-from="@Model.BackAction"
+                                       class="btn btn-sm btn-warning"
+                                       title="Edit Staff Details">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </a>
+
+                                    @if (row.IsActive)
+                                    {
+                                        <form asp-action="@Model.DeactivateAction" method="post" class="d-inline"
+                                              onsubmit="return confirm('Deactivate this staff account? They will not be able to login.');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@row.UserId" />
+                                            <button class="btn btn-sm btn-secondary" @(row.IsSelf ? "disabled" : "")>
+                                                <i class="fa-solid fa-power-off"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="@Model.ReactivateAction" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@row.UserId" />
+                                            <button class="btn btn-sm btn-success">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                            </button>
+                                        </form>
+                                    }
+
+                                    <form asp-action="@Model.RemoveAction" method="post" class="d-inline"
+                                          onsubmit="return confirm('Remove this staff link? This will remove their link to this NGO/shelter, but will not delete the person record.');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@row.UserId" />
+                                        <input type="hidden" name="entityId" value="@row.EntityId" />
+                                        <button class="btn btn-sm btn-danger" @(row.IsSelf ? "disabled" : "")>
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="staff-table-pagination" id="staffTablePagination">
+                <div class="staff-table-page-info" id="staffTablePageInfo">
+                    Showing 0 - 0 of 0 staff
+                </div>
+
+                <div class="staff-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="staffPrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="staff-table-page-number" id="staffPageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="staffNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 text-center text-muted d-none" id="staffNoResults">
+                <i class="fa-solid fa-search fa-2x mb-2 text-primary"></i>
+                <div class="fw-semibold">No matching staff found.</div>
+            </div>
+        }
+        else
+        {
+            <div class="p-3 text-muted">
+                <i class="fa-solid fa-inbox me-1"></i>No staff records found.
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const rows = Array.from(document.querySelectorAll('.staff-record-row'));
+            const body = document.getElementById('staffTableBody');
+
+            const searchInput = document.getElementById('staffSearchInput');
+            const statusFilter = document.getElementById('staffStatusFilter');
+            const sortSelect = document.getElementById('staffSortSelect');
+            const clearBtn = document.getElementById('staffClearBtn');
+
+            const prevBtn = document.getElementById('staffPrevBtn');
+            const nextBtn = document.getElementById('staffNextBtn');
+            const pageInfo = document.getElementById('staffTablePageInfo');
+            const pageNumber = document.getElementById('staffPageNumber');
+            const noResults = document.getElementById('staffNoResults');
+
+            let currentPage = 1;
+            let filteredRows = [...rows];
+
+            function sortRows() {
+                if (!body || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                rows.sort((a, b) => {
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+                    const aEntity = a.dataset.entity || '';
+                    const bEntity = b.dataset.entity || '';
+                    const aStatus = a.dataset.status || '';
+                    const bStatus = b.dataset.status || '';
+
+                    if (mode === 'name-desc') return bName.localeCompare(aName);
+                    if (mode === 'entity-asc') return aEntity.localeCompare(bEntity) || aName.localeCompare(bName);
+                    if (mode === 'status-asc') return aStatus.localeCompare(bStatus) || aName.localeCompare(bName);
+
+                    return aName.localeCompare(bName);
+                });
+
+                rows.forEach(row => body.appendChild(row));
+            }
+
+            function filterRows() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const status = statusFilter ? statusFilter.value : '';
+
+                filteredRows = rows.filter(row => {
+                    const matchesSearch = (row.dataset.search || '').includes(query);
+                    const matchesStatus = !status || row.dataset.status === status;
+
+                    return matchesSearch && matchesStatus;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredRows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) currentPage = totalPages;
+
+                const start = (currentPage - 1) * pageSize;
+                const end = start + pageSize;
+                const visibleSet = new Set(filteredRows.slice(start, end));
+
+                rows.forEach(row => {
+                    row.classList.toggle('d-none', !visibleSet.has(row));
+                });
+
+                if (pageInfo) {
+                    const from = total > 0 ? start + 1 : 0;
+                    const to = Math.min(end, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} staff`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) prevBtn.disabled = currentPage <= 1;
+                if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+                if (noResults) {
+                    noResults.classList.toggle('d-none', total > 0);
+                }
+            }
+
+            function refresh() {
+                sortRows();
+                filterRows();
+                renderPage();
+            }
+
+            if (searchInput) searchInput.addEventListener('input', () => { filterRows(); renderPage(); });
+            if (statusFilter) statusFilter.addEventListener('change', () => { filterRows(); renderPage(); });
+            if (sortSelect) sortSelect.addEventListener('change', refresh);
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'name-asc';
+                    refresh();
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refresh();
+        });
+    </script>
+}

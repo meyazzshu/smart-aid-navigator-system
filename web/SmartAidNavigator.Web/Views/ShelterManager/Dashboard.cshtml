@@ -1,0 +1,249 @@
+﻿@using SmartAidNavigator.Web.Helpers
+@{
+    ViewData["Title"] = "Shelter Manager Dashboard";
+}
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-gauge me-2"></i>Shelter Dashboard</h2>
+    <span class="text-muted small"><i class="fa-solid fa-house me-1"></i>@ViewBag.ShelterName</span>
+</div>
+
+<!-- Stat cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="Beneficiaries" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-people-group"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.BeneficiaryCount</div>
+                <div class="stat-card-label">Beneficiaries</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="BeneficiaryNeeds" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon purple"><i class="fa-solid fa-hand-holding-heart"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.NeedCount</div>
+                <div class="stat-card-label">Needs Logged</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterInventory" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon green"><i class="fa-solid fa-warehouse"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.TotalInventoryItems</div>
+                <div class="stat-card-label">Inventory Items</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterInventory" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.LowStockItems</div>
+                <div class="stat-card-label">Low Stock Alerts</div>
+            </div>
+        </a>
+    </div>
+    @* <div class="col-6 col-md-4 col-lg-2"> *@
+    @*     <div class="stat-card"> *@
+    @*         <div class="stat-card-icon orange"><i class="fa-solid fa-truck-arrow-right"></i></div> *@
+    @*         <div> *@
+    @*             <div class="stat-card-value">@ViewBag.IncomingDeliveries</div> *@
+    @*             <div class="stat-card-label">Incoming Deliveries</div> *@
+    @*         </div> *@
+    @*     </div> *@
+    @* </div> *@
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterDonations" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.PendingDonations</div>
+                <div class="stat-card-label">Pending Donations</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="ShelterRequests" asp-action="Index" class="stat-card text-decoration-none">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-person-shelter"></i></div>
+            <div>
+                <div class="stat-card-value">@ViewBag.PendingShelterRequests</div>
+                <div class="stat-card-label">Shelter Requests</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+        <a asp-controller="MyShelter" asp-action="Details" class="stat-card text-decoration-none">
+            <div class="stat-card-icon teal"><i class="fa-solid fa-id-card"></i></div>
+            <div>
+                <div class="stat-card-value"><i class="fa-solid fa-arrow-right fa-xs"></i></div>
+                <div class="stat-card-label">My Profile</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Quick actions + low stock -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header"><i class="fa-solid fa-bolt me-2 text-warning"></i>Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-controller="Beneficiaries" asp-action="Create" class="btn btn-primary">
+                        <i class="fa-solid fa-person-circle-plus me-2"></i>Register Beneficiary
+                    </a>
+                    <a asp-controller="BeneficiaryNeeds" asp-action="Create" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-hand-holding-heart me-2"></i>Log Need
+                    </a>
+                    <a asp-controller="ShelterInventory" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-warehouse me-2"></i>Manage Inventory
+                    </a>
+                    <a asp-controller="MyShelter" asp-action="Edit" class="btn btn-outline-secondary">
+                        <i class="fa-solid fa-pen-to-square me-2"></i>Edit Shelter Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-triangle-exclamation me-2 text-danger"></i>Low Stock Alerts</span>
+                <a asp-controller="ShelterInventory" asp-action="Index" class="btn btn-sm btn-outline-secondary">Full Inventory</a>
+            </div>
+            <div class="card-body p-0">
+                @{
+                    var lowStockList = ViewBag.LowStockList as System.Collections.IList;
+                }
+                @if (lowStockList != null && lowStockList.Count > 0)
+                {
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Category</th>
+                                <th>Current Qty</th>
+                                <th>Minimum</th>
+                                <th>Unit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in lowStockList)
+                            {
+                                dynamic r = row;
+                                <tr>
+                                    <td><i class="fa-solid fa-box me-1 text-muted"></i>@r.ItemName</td>
+                                    <td><span class="badge bg-secondary">@r.CategoryName</span></td>
+                                    <td><span class="badge bg-danger">@r.Quantity</span></td>
+                                    <td class="text-muted">@r.MinimumLevel</td>
+                                    <td class="text-muted small">@r.Unit</td>
+                                    <td>
+                                        <a asp-controller="ShelterInventory" asp-action="Adjust" asp-route-itemId="@r.ItemId" class="btn btn-sm btn-primary">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-3 text-success small"><i class="fa-solid fa-circle-check me-1"></i>All stock levels are healthy.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent beneficiaries + recent needs -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-people-group me-2 text-primary"></i>Recent Beneficiaries</span>
+                <a asp-controller="Beneficiaries" asp-action="Index" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.RecentBeneficiaries != null && ((List<SmartAidNavigator.Web.Models.Beneficiary>)ViewBag.RecentBeneficiaries).Any())
+                {
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Gender</th>
+                                <th>Age</th>
+                                <th>Registered</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in (List<SmartAidNavigator.Web.Models.Beneficiary>)ViewBag.RecentBeneficiaries)
+                            {
+                                <tr>
+                                    <td>
+                                        <i class="fa-solid fa-person me-1 text-muted"></i>
+                                        <a asp-controller="BeneficiaryNeeds" asp-action="IndividualNeeds" asp-route-beneficiaryId="@b.BeneficiaryId">@(b.Person?.FullName ?? "-")</a>
+                                    </td>
+                                    <td>@(b.Person?.Gender ?? "-")</td>
+                                    <td>
+                                        @(PersonHelper.CalculateAge(b.Person?.DateOfBirth)?.ToString() ?? "-")
+                                    </td>
+                                    <td class="text-muted small">@b.CreatedAt.ToString("dd MMM")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-3 text-muted small"><i class="fa-solid fa-inbox me-1"></i>No beneficiaries yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="fa-solid fa-hand-holding-heart me-2" style="color:var(--stat-purple)"></i>Recent Needs</span>
+                <a asp-controller="BeneficiaryNeeds" asp-action="Index" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.RecentNeeds != null && ((List<SmartAidNavigator.Web.Models.BeneficiaryNeed>)ViewBag.RecentNeeds).Any())
+                {
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Beneficiary</th>
+                                <th>Item Needed</th>
+                                <th>Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var n in (List<SmartAidNavigator.Web.Models.BeneficiaryNeed>)ViewBag.RecentNeeds)
+                            {
+                                var pClass = n.Priority switch {
+                                    "HIGH" or "CRITICAL" => "bg-danger",
+                                    "MEDIUM" => "bg-warning text-dark",
+                                    _ => "bg-success"
+                                };
+                                <tr>
+                                    <td>@(n.Beneficiary?.Person?.FullName ?? "-")</td>
+                                    <td>@(n.Item?.ItemName ?? "-")</td>
+                                    <td><span class="badge @pClass">@n.Priority</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-3 text-muted small"><i class="fa-solid fa-inbox me-1"></i>No needs logged yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

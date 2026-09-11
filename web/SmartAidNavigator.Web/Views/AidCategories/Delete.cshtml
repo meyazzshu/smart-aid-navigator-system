@@ -1,0 +1,31 @@
+@model SmartAidNavigator.Web.Models.AidCategory
+@{
+    ViewData["Title"] = "Delete Category";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-trash me-2 text-danger"></i>Delete Category</h2>
+    <a class="btn btn-secondary" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger"><i class="fa-solid fa-circle-xmark me-2"></i>@TempData["Error"]</div>
+}
+
+<div class="app-form-card">
+    <div class="card border-danger">
+        <div class="card-header text-danger"><i class="fa-solid fa-triangle-exclamation me-2"></i>Confirm Deletion</div>
+        <div class="card-body">
+            <p class="mb-3">Are you sure you want to delete the category <strong>@Model.CategoryName</strong>? This action cannot be undone.</p>
+            <form method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="CategoryId" />
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger" type="submit"><i class="fa-solid fa-trash me-1"></i>Yes, Delete</button>
+                    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

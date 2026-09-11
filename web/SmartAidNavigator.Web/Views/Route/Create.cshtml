@@ -1,0 +1,75 @@
+@* @model SmartAidNavigator.Web.ViewModels.RouteCreateVm *@
+@* @using Microsoft.AspNetCore.Mvc.Rendering *@
+@* @{ *@
+@*     ViewData["Title"] = "Create Route"; *@
+@* } *@
+
+@* <div class="app-page-header"> *@
+@*     <h2 class="page-title"><i class="fa-solid fa-route me-2"></i>Create Route</h2> *@
+@*     <a class="btn btn-secondary" asp-controller="Delivery" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a> *@
+@* </div> *@
+
+@* <form method="post"> *@
+@*     @Html.AntiForgeryToken() *@
+
+@*     <div class="card mb-3"> *@
+@*         <div class="card-header"><i class="fa-solid fa-circle-info me-2"></i>Route Details</div> *@
+@*         <div class="card-body"> *@
+@*             <div class="row g-3"> *@
+@*                 <div class="col-md-6"> *@
+@*                     <label class="form-label fw-semibold">NGO</label> *@
+@*                     <select class="form-select" asp-for="NgoId" asp-items="Model.NgoOptions"> *@
+@*                         <option value="">-- Select NGO --</option> *@
+@*                     </select> *@
+@*                 </div> *@
+@*                 <div class="col-md-6"> *@
+@*                     <label class="form-label fw-semibold">Algorithm</label> *@
+@*                     <input class="form-control" asp-for="Algorithm" readonly /> *@
+@*                 </div> *@
+@*                 <div class="col-md-6"> *@
+@*                     <label class="form-label fw-semibold">Total Distance (km)</label> *@
+@*                     <input class="form-control" asp-for="TotalDistanceKm" readonly /> *@
+@*                 </div> *@
+@*                 <div class="col-md-6"> *@
+@*                     <label class="form-label fw-semibold">Total ETA (minutes)</label> *@
+@*                     <input class="form-control" asp-for="TotalEtaMinutes" readonly /> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+
+@*     <div class="section-label mb-3">Route Stops</div> *@
+@*     @for (int i = 0; i < Model.Stops.Count; i++) *@
+@*     { *@
+@*         <div class="card mb-3"> *@
+@*             <div class="card-header"> *@
+@*                 <i class="fa-solid fa-location-dot me-2"></i>Stop @Model.Stops[i].StopOrder *@
+@*             </div> *@
+@*             <div class="card-body"> *@
+@*                 <div class="row g-3"> *@
+@*                     <div class="col-md-3"> *@
+@*                         <label class="form-label fw-semibold">Shelter ID</label> *@
+@*                         <input class="form-control" asp-for="@Model.Stops[i].ShelterId" readonly /> *@
+@*                     </div> *@
+@*                     <div class="col-md-3"> *@
+@*                         <label class="form-label fw-semibold">Distance From Prev (km)</label> *@
+@*                         <input class="form-control" asp-for="@Model.Stops[i].DistanceFromPrevKm" readonly /> *@
+@*                     </div> *@
+@*                     <div class="col-md-3"> *@
+@*                         <label class="form-label fw-semibold">ETA From Prev (min)</label> *@
+@*                         <input class="form-control" asp-for="@Model.Stops[i].EtaFromPrevMinutes" readonly /> *@
+@*                     </div> *@
+@*                     <div class="col-md-3"> *@
+@*                         <label class="form-label fw-semibold">Priority Score</label> *@
+@*                         <input class="form-control" asp-for="@Model.Stops[i].PriorityScore" readonly /> *@
+@*                     </div> *@
+@*                 </div> *@
+@*             </div> *@
+@*         </div> *@
+@*     } *@
+
+@*     <div class="d-flex gap-2"> *@
+@*         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-1"></i>Save Route</button> *@
+@*         <a class="btn btn-secondary" asp-controller="Delivery" asp-action="Index">Cancel</a> *@
+@*     </div> *@
+@* </form> *@

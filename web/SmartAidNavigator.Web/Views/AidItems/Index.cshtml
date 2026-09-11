@@ -1,0 +1,476 @@
+﻿@model List<SmartAidNavigator.Web.Models.AidItem>
+
+@{
+    ViewData["Title"] = "Aid Items";
+
+    var categories = Model
+        .Select(x => x.Category?.CategoryName)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+
+    var units = Model
+        .Select(x => x.Unit)
+        .Where(x => !string.IsNullOrWhiteSpace(x))
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-box-open me-2"></i>Aid Items</h2>
+    <a class="btn btn-primary" asp-action="Create">
+        <i class="fa-solid fa-plus me-1"></i>Add Item
+    </a>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon blue"><i class="fa-solid fa-box-open"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count</div>
+                <div class="stat-card-label">Total Items</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon green"><i class="fa-solid fa-circle-check"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => x.IsActive)</div>
+                <div class="stat-card-label">Active</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon red"><i class="fa-solid fa-circle-xmark"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Count(x => !x.IsActive)</div>
+                <div class="stat-card-label">Inactive</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+        <div class="stat-card">
+            <div class="stat-card-icon orange"><i class="fa-solid fa-tags"></i></div>
+            <div>
+                <div class="stat-card-value">@Model.Select(x => x.CategoryId).Distinct().Count()</div>
+                <div class="stat-card-label">Categories</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="fa-solid fa-circle-info me-2"></i>No items found. Add your first item above.
+    </div>
+}
+else
+{
+    <div class="card aid-item-filter-card mb-4">
+        <div class="card-header">
+            <i class="fa-solid fa-filter me-2 text-primary"></i>Filter Items
+        </div>
+
+        <div class="card-body">
+            <div class="aid-item-filter-panel">
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fa-solid fa-search"></i>
+                    </span>
+                    <input type="text"
+                           id="itemSearchInput"
+                           class="form-control"
+                           placeholder="Search item ID, item name, category, or unit..." />
+                </div>
+
+                <select id="itemCategoryFilter" class="form-select">
+                    <option value="">All Categories</option>
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category">@category</option>
+                    }
+                </select>
+
+                <select id="itemStatusFilter" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                </select>
+
+                <select id="itemUnitFilter" class="form-select">
+                    <option value="">All Units</option>
+                    @foreach (var unit in units)
+                    {
+                        <option value="@unit">@unit</option>
+                    }
+                </select>
+
+                <select id="itemSortSelect" class="form-select">
+                    <option value="name-asc" selected>Name: A to Z</option>
+                    <option value="name-desc">Name: Z to A</option>
+                    <option value="id-asc">Item ID: Low to High</option>
+                    <option value="id-desc">Item ID: High to Low</option>
+                    <option value="category-asc">Category: A to Z</option>
+                    <option value="unit-asc">Unit: A to Z</option>
+                    <option value="status-asc">Status: Active First</option>
+                </select>
+
+                <button type="button" id="clearItemFiltersBtn" class="btn btn-outline-secondary">
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fa-solid fa-list me-2"></i>All Items</span>
+
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-light text-dark border">15 records per page</span>
+                <span class="badge bg-secondary">@Model.Count record(s)</span>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0" id="itemTable">
+                <thead>
+                    <tr>
+                        <th><i class="fa-solid fa-hashtag me-1"></i>ID</th>
+                        <th><i class="fa-solid fa-cube me-1"></i>Item Name</th>
+                        <th><i class="fa-solid fa-tag me-1"></i>Category</th>
+                        <th><i class="fa-solid fa-ruler me-1"></i>Unit</th>
+                        <th><i class="fa-solid fa-circle-dot me-1"></i>Status</th>
+                        <th style="width:180px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="itemTableBody">
+                    @foreach (var i in Model)
+                    {
+                        var categoryName = i.Category?.CategoryName ?? "";
+                        var statusValue = i.IsActive ? "ACTIVE" : "INACTIVE";
+                        var searchText = $"{i.ItemId} {i.ItemName} {categoryName} {i.Unit} {statusValue}".ToLower();
+
+                        <tr class="item-record-row"
+                            data-search="@searchText"
+                            data-item-id="@i.ItemId"
+                            data-name="@((i.ItemName ?? "").ToLower())"
+                            data-category="@categoryName"
+                            data-category-sort="@categoryName.ToLower()"
+                            data-unit="@(i.Unit ?? "")"
+                            data-unit-sort="@((i.Unit ?? "").ToLower())"
+                            data-status="@statusValue">
+
+                            <td>
+                                <span class="fw-semibold text-primary">#@i.ItemId</span>
+                            </td>
+
+                            <td>
+                                <i class="fa-solid fa-cube me-1 text-muted"></i>
+                                <strong>@i.ItemName</strong>
+                            </td>
+
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(categoryName))
+                                {
+                                    <span class="badge bg-primary">@categoryName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+
+                            <td>
+                                <span class="badge bg-light text-dark border">@i.Unit</span>
+                            </td>
+
+                            <td>
+                                @if (i.IsActive)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@i.ItemId" title="Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                                <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@i.ItemId" title="Edit">
+                                    <i class="fa-solid fa-pen"></i>
+                                </a>
+                                <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@i.ItemId" title="Delete">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="item-table-pagination" id="itemTablePagination">
+                <div class="item-table-page-info" id="itemTablePageInfo">
+                    Showing 0 - 0 of 0 items
+                </div>
+
+                <div class="item-table-page-actions">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="itemTablePrevBtn">
+                        <i class="fa-solid fa-chevron-left me-1"></i>Previous
+                    </button>
+
+                    <span class="item-table-page-number" id="itemTablePageNumber">
+                        Page 1
+                    </span>
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="itemTableNextBtn">
+                        Next<i class="fa-solid fa-chevron-right ms-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-4 text-center text-muted d-none" id="noItemSearchResult">
+                <i class="fa-solid fa-search fa-2x mb-2 text-primary"></i>
+                <div class="fw-semibold">No matching items found.</div>
+                <div class="small">Try changing your search or filters.</div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const pageSize = 15;
+
+            const searchInput = document.getElementById('itemSearchInput');
+            const categoryFilter = document.getElementById('itemCategoryFilter');
+            const statusFilter = document.getElementById('itemStatusFilter');
+            const unitFilter = document.getElementById('itemUnitFilter');
+            const sortSelect = document.getElementById('itemSortSelect');
+            const clearBtn = document.getElementById('clearItemFiltersBtn');
+
+            const tableBody = document.getElementById('itemTableBody');
+            const rows = Array.from(document.querySelectorAll('tr.item-record-row'));
+
+            const pagination = document.getElementById('itemTablePagination');
+            const pageInfo = document.getElementById('itemTablePageInfo');
+            const pageNumber = document.getElementById('itemTablePageNumber');
+            const prevBtn = document.getElementById('itemTablePrevBtn');
+            const nextBtn = document.getElementById('itemTableNextBtn');
+            const noResult = document.getElementById('noItemSearchResult');
+
+            let currentPage = 1;
+            let filteredRows = [...rows];
+
+            function sortRows() {
+                if (!tableBody || !sortSelect) return;
+
+                const mode = sortSelect.value;
+
+                rows.sort((a, b) => {
+                    const aId = parseInt(a.dataset.itemId || '0', 10);
+                    const bId = parseInt(b.dataset.itemId || '0', 10);
+
+                    const aName = a.dataset.name || '';
+                    const bName = b.dataset.name || '';
+
+                    const aCategory = a.dataset.categorySort || '';
+                    const bCategory = b.dataset.categorySort || '';
+
+                    const aUnit = a.dataset.unitSort || '';
+                    const bUnit = b.dataset.unitSort || '';
+
+                    const aStatus = a.dataset.status || '';
+                    const bStatus = b.dataset.status || '';
+
+                    switch (mode) {
+                        case 'name-desc':
+                            return bName.localeCompare(aName) || aId - bId;
+
+                        case 'id-asc':
+                            return aId - bId;
+
+                        case 'id-desc':
+                            return bId - aId;
+
+                        case 'category-asc':
+                            return aCategory.localeCompare(bCategory) || aName.localeCompare(bName);
+
+                        case 'unit-asc':
+                            return aUnit.localeCompare(bUnit) || aName.localeCompare(bName);
+
+                        case 'status-asc':
+                            return aStatus.localeCompare(bStatus) || aName.localeCompare(bName);
+
+                        case 'name-asc':
+                        default:
+                            return aName.localeCompare(bName) || aId - bId;
+                    }
+                });
+
+                rows.forEach(row => tableBody.appendChild(row));
+            }
+
+            function filterRows() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const category = categoryFilter ? categoryFilter.value : '';
+                const status = statusFilter ? statusFilter.value : '';
+                const unit = unitFilter ? unitFilter.value : '';
+
+                filteredRows = rows.filter(row => {
+                    const text = row.dataset.search || '';
+                    const rowCategory = row.dataset.category || '';
+                    const rowStatus = row.dataset.status || '';
+                    const rowUnit = row.dataset.unit || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesCategory = !category || rowCategory === category;
+                    const matchesStatus = !status || rowStatus === status;
+                    const matchesUnit = !unit || rowUnit === unit;
+
+                    return matchesSearch && matchesCategory && matchesStatus && matchesUnit;
+                });
+
+                currentPage = 1;
+            }
+
+            function renderPage() {
+                const total = filteredRows.length;
+                const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+
+                if (currentPage > totalPages) {
+                    currentPage = totalPages;
+                }
+
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = startIndex + pageSize;
+                const visibleSet = new Set(filteredRows.slice(startIndex, endIndex));
+
+                rows.forEach(row => {
+                    row.classList.toggle('d-none', !visibleSet.has(row));
+                });
+
+                if (pagination) {
+                    pagination.classList.toggle('d-none', total === 0);
+                }
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', total > 0);
+                }
+
+                if (pageInfo) {
+                    const from = total > 0 ? startIndex + 1 : 0;
+                    const to = Math.min(endIndex, total);
+                    pageInfo.textContent = `Showing ${from} - ${to} of ${total} items`;
+                }
+
+                if (pageNumber) {
+                    pageNumber.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+
+                if (prevBtn) {
+                    prevBtn.disabled = currentPage <= 1;
+                }
+
+                if (nextBtn) {
+                    nextBtn.disabled = currentPage >= totalPages;
+                }
+            }
+
+            function refreshTable() {
+                sortRows();
+                filterRows();
+                renderPage();
+            }
+
+            if (searchInput) {
+                searchInput.addEventListener('input', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (statusFilter) {
+                statusFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (unitFilter) {
+                unitFilter.addEventListener('change', function () {
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (sortSelect) {
+                sortSelect.addEventListener('change', function () {
+                    currentPage = 1;
+                    sortRows();
+                    filterRows();
+                    renderPage();
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (categoryFilter) categoryFilter.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (unitFilter) unitFilter.value = '';
+                    if (sortSelect) sortSelect.value = 'name-asc';
+
+                    refreshTable();
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function () {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderPage();
+                    }
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function () {
+                    const totalPages = Math.max(Math.ceil(filteredRows.length / pageSize), 1);
+
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderPage();
+                    }
+                });
+            }
+
+            refreshTable();
+        });
+    </script>
+}

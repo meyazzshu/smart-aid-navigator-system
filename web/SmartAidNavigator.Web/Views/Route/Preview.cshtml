@@ -1,0 +1,165 @@
+@* @model SmartAidNavigator.Web.ViewModels.RoutePreviewVm *@
+@* @using System.Text.Json *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Route Preview"; *@
+@*     var polylineJson = JsonSerializer.Serialize( *@
+@*         Model.Polyline.Select(p => new[] { (double)p.Latitude, (double)p.Longitude }).ToList() *@
+@*     ); *@
+
+@*     var stopMarkersJson = JsonSerializer.Serialize( *@
+@*         Model.Stops.Select(s => new *@
+@*         { *@
+@*             stopOrder = s.StopOrder, *@
+@*             shelterName = s.ShelterName, *@
+@*             lat = (double)s.ShelterLatitude, *@
+@*             lng = (double)s.ShelterLongitude, *@
+@*             distance = (double)s.DistanceFromPrevKm, *@
+@*             eta = s.EtaFromPrevMinutes *@
+@*         }).ToList() *@
+@*     ); *@
+@* } *@
+
+@* <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> *@
+@* <style> *@
+@*     #routeMap { *@
+@*         height: 520px; *@
+@*         width: 100%; *@
+@*         border: 1px solid var(--theme-border); *@
+@*         border-radius: 14px; *@
+@*     } *@
+@* </style> *@
+
+@* <div class="app-page-header"> *@
+@*     <h2 class="page-title"><i class="fa-solid fa-map me-2"></i>Route Preview</h2> *@
+@*     <a asp-action="Generate" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back</a> *@
+@* </div> *@
+
+@* <div class="row g-3 mb-4"> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon blue"><i class="fa-solid fa-building-ngo"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value" style="font-size:1.1rem;">@Model.NgoName</div> *@
+@*                 <div class="stat-card-label">NGO</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon purple"><i class="fa-solid fa-microchip"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value" style="font-size:1.1rem;">@Model.Algorithm</div> *@
+@*                 <div class="stat-card-label">Algorithm</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon teal"><i class="fa-solid fa-road"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value">@Model.TotalDistanceKm km</div> *@
+@*                 <div class="stat-card-label">Total Distance</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon orange"><i class="fa-solid fa-clock"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value">@Model.TotalEtaMinutes min</div> *@
+@*                 <div class="stat-card-label">Total ETA</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+@* <div id="routeMap" class="mb-4"></div> *@
+
+@* <div class="card mb-4"> *@
+@*     <div class="card-header"><i class="fa-solid fa-list-ol me-2"></i>Route Stops</div> *@
+@*     <div class="card-body p-0"> *@
+@*         <table class="table table-hover mb-0"> *@
+@*             <thead> *@
+@*                 <tr> *@
+@*                     <th><i class="fa-solid fa-hashtag me-1"></i>Stop</th> *@
+@*                     <th><i class="fa-solid fa-house me-1"></i>Shelter</th> *@
+@*                     <th><i class="fa-solid fa-road me-1"></i>Distance From Prev</th> *@
+@*                     <th><i class="fa-solid fa-clock me-1"></i>Drive Time From Prev</th> *@
+@*                     <th><i class="fa-solid fa-star me-1"></i>Priority</th> *@
+@*                     <th><i class="fa-solid fa-truck me-1"></i>Delivery IDs</th> *@
+@*                 </tr> *@
+@*             </thead> *@
+@*             <tbody> *@
+@*                 @foreach (var stop in Model.Stops.OrderBy(x => x.StopOrder)) *@
+@*                 { *@
+@*                     <tr> *@
+@*                         <td><span class="badge bg-primary">@stop.StopOrder</span></td> *@
+@*                         <td><strong>@stop.ShelterName</strong></td> *@
+@*                         <td>@stop.DistanceFromPrevKm km</td> *@
+@*                         <td>@stop.EtaFromPrevMinutes min</td> *@
+@*                         <td>@stop.PriorityScore</td> *@
+@*                         <td class="text-muted small">@string.Join(", ", stop.DeliveryIds)</td> *@
+@*                     </tr> *@
+@*                 } *@
+@*             </tbody> *@
+@*         </table> *@
+@*     </div> *@
+@* </div> *@
+
+@* <div class="d-flex gap-2"> *@
+@*     <form asp-action="Confirm" method="post" class="d-inline"> *@
+@*         @Html.AntiForgeryToken() *@
+
+@*         <input type="hidden" asp-for="NgoId" /> *@
+@*         <input type="hidden" asp-for="NgoName" /> *@
+@*         <input type="hidden" asp-for="Algorithm" /> *@
+@*         <input type="hidden" asp-for="TotalDistanceKm" /> *@
+@*         <input type="hidden" asp-for="TotalEtaMinutes" /> *@
+
+@*         @foreach (var id in Model.DeliveryIds) *@
+@*         { *@
+@*             <input type="hidden" name="DeliveryIds" value="@id" /> *@
+@*         } *@
+
+@*         <button type="submit" class="btn btn-success"><i class="fa-solid fa-circle-check me-1"></i>Confirm Route</button> *@
+@*     </form> *@
+
+@*     <a asp-action="Generate" class="btn btn-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back</a> *@
+@* </div> *@
+
+@* <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script> *@
+@* <script> *@
+@*     const polylineCoords = @Html.Raw(polylineJson); *@
+@*     const stopMarkers = @Html.Raw(stopMarkersJson); *@
+
+@*     const map = L.map('routeMap'); *@
+
+@*     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { *@
+@*         maxZoom: 19, *@
+@*         attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' *@
+@*     }).addTo(map); *@
+
+@*     if (polylineCoords.length > 0) { *@
+@*         const polyline = L.polyline(polylineCoords, { color: '#03466e', weight: 5, opacity: 0.85 }).addTo(map); *@
+@*         map.fitBounds(polyline.getBounds(), { padding: [20, 20] }); *@
+
+@*         L.marker(polylineCoords[0]) *@
+@*             .addTo(map) *@
+@*             .bindPopup("<strong>Start (NGO)</strong>") *@
+@*             .openPopup(); *@
+
+@*         stopMarkers.forEach(s => { *@
+@*             L.marker([s.lat, s.lng]) *@
+@*                 .addTo(map) *@
+@*                 .bindPopup( *@
+@*                     "<strong>Stop " + s.stopOrder + "</strong><br>" + *@
+@*                     s.shelterName + "<br>" + *@
+@*                     "Road distance: " + s.distance + " km<br>" + *@
+@*                     "Drive time: " + s.eta + " min" *@
+@*                 ); *@
+@*         }); *@
+@*     } else { *@
+@*         map.setView([3.1390, 101.6869], 11); *@
+@*     } *@
+@* </script> *@

@@ -1,0 +1,537 @@
+﻿@model SmartAidNavigator.Web.ViewModels.ShelterCreateVm
+
+@{
+    ViewData["Title"] = "Add Shelter";
+
+    // var ngos = ViewBag.Ngos as List<SmartAidNavigator.Web.Models.Ngo> ?? new();
+
+    var malaysiaStates = new[]
+    {
+        "Johor",
+        "Kedah",
+        "Kelantan",
+        "Melaka",
+        "Negeri Sembilan",
+        "Pahang",
+        "Perak",
+        "Perlis",
+        "Pulau Pinang",
+        "Sabah",
+        "Sarawak",
+        "Selangor",
+        "Terengganu",
+        "Kuala Lumpur",
+        "Labuan",
+        "Putrajaya"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-house-circle-check me-2"></i>Add Shelter
+        </h2>
+        <p class="text-muted mb-0">
+            Create a new shelter profile with NGO partner, capacity, contact details, and Google location.
+        </p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card org-edit-summary-card">
+                <div class="card-body text-center">
+                    <div class="org-detail-avatar mx-auto mb-3">
+                        <i class="fa-solid fa-house-medical"></i>
+                    </div>
+
+                    <h4 class="mb-1">New Shelter</h4>
+                    <div class="text-muted mb-3">Admin-created shelter record</div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fa-solid fa-circle-plus me-1"></i>New Record
+                        </span>
+                    </div>
+
+                    <div class="staff-edit-mini-info">
+                        <div>
+                            <i class="fa-solid fa-house-medical me-2 text-primary"></i>
+                            <span>Complete shelter profile</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-building-ngo me-2 text-primary"></i>
+                            <span>Link to NGO partner</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                            <span>Use Google location search</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Create Shelter
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-circle-info me-2 text-primary"></i>Shelter Details
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label asp-for="ShelterName" class="form-label fw-semibold">
+                                <i class="fa-solid fa-house-medical me-1 text-primary"></i>Shelter Name
+                            </label>
+                            <input asp-for="ShelterName"
+                                   class="form-control"
+                                   placeholder="Example: PPS Dewan Komuniti Seri Maju" />
+                            <span asp-validation-for="ShelterName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="IsActive" class="form-label fw-semibold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>Status
+                            </label>
+                            <select asp-for="IsActive" class="form-select">
+                                <option value="true">Active</option>
+                                <option value="false">Inactive / Pending</option>
+                            </select>
+                            <span asp-validation-for="IsActive" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="NgoId" class="form-label fw-semibold">
+                                <i class="fa-solid fa-building-ngo me-1 text-primary"></i>NGO Partner
+                            </label>
+
+                            <select asp-for="NgoId" asp-items="Model.NgoOptions" class="form-select">
+                                <option value="">-- No NGO Partner --</option>
+                            </select>
+
+                            <span asp-validation-for="NgoId" class="text-danger"></span>
+                            <div class="form-text">
+                                Select the NGO responsible for managing or supporting this shelter.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label fw-semibold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>Phone
+                            </label>
+                            <input asp-for="Phone"
+                                   class="form-control"
+                                   placeholder="Example: 03-12345678" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>Email
+                            </label>
+                            <input asp-for="Email"
+                                   class="form-control"
+                                   placeholder="Example: shelter@example.org" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Capacity" class="form-label fw-semibold">
+                                <i class="fa-solid fa-people-roof me-1 text-primary"></i>Capacity
+                            </label>
+                            <input asp-for="Capacity"
+                                   type="number"
+                                   min="0"
+                                   class="form-control"
+                                   placeholder="Example: 250" />
+                            <span asp-validation-for="Capacity" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="CurrentOccupancy" class="form-label fw-semibold">
+                                <i class="fa-solid fa-users me-1 text-primary"></i>Current Occupancy
+                            </label>
+                            <input asp-for="CurrentOccupancy"
+                                   type="number"
+                                   min="0"
+                                   class="form-control" />
+                            <span asp-validation-for="CurrentOccupancy" class="text-danger"></span>
+                            <div class="form-text">
+                                Usually 0 when first creating a shelter.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-user-shield me-2 text-primary"></i>Shelter Manager Account
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        This will create a login account for the shelter manager. Staff Type and Staff Title are fixed as Shelter Manager.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ManagerStaffType" class="form-label fw-semibold">
+                                <i class="fa-solid fa-id-badge me-1 text-primary"></i>Staff Type
+                            </label>
+                            <input asp-for="ManagerStaffType" class="form-control" readonly />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerStaffTitle" class="form-label fw-semibold">
+                                <i class="fa-solid fa-user-shield me-1 text-primary"></i>Staff Title
+                            </label>
+                            <input asp-for="ManagerStaffTitle" class="form-control" readonly />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerFullName" class="form-label fw-semibold">
+                                <i class="fa-solid fa-signature me-1 text-primary"></i>Manager Full Name
+                            </label>
+                            <input asp-for="ManagerFullName" class="form-control" />
+                            <span asp-validation-for="ManagerFullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerEmail" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>Manager Email
+                            </label>
+                            <input asp-for="ManagerEmail" class="form-control" />
+                            <span asp-validation-for="ManagerEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerPhone" class="form-label fw-semibold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>Manager Phone
+                            </label>
+                            <input asp-for="ManagerPhone" class="form-control" />
+                            <span asp-validation-for="ManagerPhone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerIcOrPassport" class="form-label fw-semibold">
+                                <i class="fa-solid fa-id-card me-1 text-primary"></i>Manager IC / Passport
+                            </label>
+                            <input asp-for="ManagerIcOrPassport" class="form-control" />
+                            <span asp-validation-for="ManagerIcOrPassport" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerGender" class="form-label fw-semibold">
+                                <i class="fa-solid fa-venus-mars me-1 text-primary"></i>Manager Gender
+                            </label>
+                            <select asp-for="ManagerGender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                            <span asp-validation-for="ManagerGender" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ManagerDateOfBirth" class="form-label fw-semibold">
+                                <i class="fa-solid fa-cake-candles me-1 text-primary"></i>Manager Date of Birth
+                            </label>
+                            <input asp-for="ManagerDateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="ManagerDateOfBirth" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="ManagerPassword" class="form-label fw-semibold">
+                                <i class="fa-solid fa-lock me-1 text-primary"></i>Manager Password
+                            </label>
+                            <input asp-for="ManagerPassword" type="password" class="form-control" />
+                            <span asp-validation-for="ManagerPassword" class="text-danger"></span>
+                            <div class="form-text">Minimum 6 characters.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-location-dot me-2 text-primary"></i>Google Location
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Search and select a location from Google to auto-fill shelter address and coordinates.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-magnifying-glass-location me-1 text-primary"></i>Search Location
+                        </label>
+                        <input type="text"
+                               id="shelterCreateGoogleLocationSearch"
+                               class="form-control"
+                               placeholder="Search shelter address, school, hall, building, or area..." />
+                        <div class="form-text">
+                            Example: Dewan, school, mosque, hall, or full address.
+                        </div>
+                    </div>
+
+                    <div id="shelterCreateMap" class="org-edit-map mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="AddressLine" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map-location-dot me-1 text-primary"></i>Address Line
+                            </label>
+                            <input asp-for="AddressLine" id="AddressLine" class="form-control" />
+                            <span asp-validation-for="AddressLine" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold">
+                                <i class="fa-solid fa-city me-1 text-primary"></i>City
+                            </label>
+                            <input asp-for="City" id="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map me-1 text-primary"></i>State
+                            </label>
+                            <select asp-for="State" id="State" class="form-select">
+                                <option value="">-- Select State --</option>
+                                @foreach (var state in malaysiaStates)
+                                {
+                                    <option value="@state">@state</option>
+                                }
+                            </select>
+                            <span asp-validation-for="State" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PostalCode" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelopes-bulk me-1 text-primary"></i>Postal Code
+                            </label>
+                            <input asp-for="PostalCode" id="PostalCode" class="form-control" />
+                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Latitude" class="form-label fw-semibold">
+                                <i class="fa-solid fa-location-crosshairs me-1 text-primary"></i>Latitude
+                            </label>
+                            <input asp-for="Latitude" id="Latitude" class="form-control" readonly />
+                            <span asp-validation-for="Latitude" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Longitude" class="form-label fw-semibold">
+                                <i class="fa-solid fa-location-crosshairs me-1 text-primary"></i>Longitude
+                            </label>
+                            <input asp-for="Longitude" id="Longitude" class="form-control" readonly />
+                            <span asp-validation-for="Longitude" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a asp-action="Index" class="btn btn-secondary">
+                    Cancel
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Create Shelter
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let shelterCreateMap;
+        let shelterCreateMarker;
+        let shelterCreateAutocomplete;
+
+        function initShelterCreateMap() {
+            const mapElement = document.getElementById('shelterCreateMap');
+            const searchInput = document.getElementById('shelterCreateGoogleLocationSearch');
+
+            if (!mapElement || !searchInput) {
+                return;
+            }
+
+            const latInput = document.getElementById('Latitude');
+            const lngInput = document.getElementById('Longitude');
+            const addressInput = document.getElementById('AddressLine');
+            const cityInput = document.getElementById('City');
+            const stateInput = document.getElementById('State');
+            const postalInput = document.getElementById('PostalCode');
+
+            const defaultLocation = {
+                lat: 3.1390,
+                lng: 101.6869
+            };
+
+            shelterCreateMap = new google.maps.Map(mapElement, {
+                center: defaultLocation,
+                zoom: 12,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            shelterCreateMarker = new google.maps.Marker({
+                map: shelterCreateMap,
+                position: defaultLocation,
+                draggable: true
+            });
+
+            shelterCreateMarker.addListener('dragend', function () {
+                const pos = shelterCreateMarker.getPosition();
+
+                if (!pos) return;
+
+                latInput.value = pos.lat().toFixed(7);
+                lngInput.value = pos.lng().toFixed(7);
+            });
+
+            shelterCreateAutocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'my' },
+                fields: ['address_components', 'formatted_address', 'geometry', 'name']
+            });
+
+            shelterCreateAutocomplete.addListener('place_changed', function () {
+                const place = shelterCreateAutocomplete.getPlace();
+
+                if (!place.geometry || !place.geometry.location) {
+                    alert('Selected location does not have coordinates. Please choose another result.');
+                    return;
+                }
+
+                const location = place.geometry.location;
+
+                shelterCreateMap.setCenter(location);
+                shelterCreateMap.setZoom(16);
+                shelterCreateMarker.setPosition(location);
+
+                latInput.value = location.lat().toFixed(7);
+                lngInput.value = location.lng().toFixed(7);
+
+                const parsed = parseShelterCreateAddressComponents(place.address_components || []);
+
+                addressInput.value = place.formatted_address || place.name || '';
+                cityInput.value = parsed.city || '';
+                stateInput.value = normalizeMalaysiaStateForShelterCreate(parsed.state || '');
+                postalInput.value = parsed.postalCode || '';
+            });
+        }
+
+        function parseShelterCreateAddressComponents(components) {
+            let city = '';
+            let state = '';
+            let postalCode = '';
+
+            components.forEach(function (component) {
+                const types = component.types || [];
+
+                if (types.includes('postal_code')) {
+                    postalCode = component.long_name;
+                }
+
+                if (
+                    types.includes('locality') ||
+                    types.includes('postal_town') ||
+                    types.includes('administrative_area_level_2')
+                ) {
+                    if (!city) {
+                        city = component.long_name;
+                    }
+                }
+
+                if (types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            });
+
+            return {
+                city: city,
+                state: state,
+                postalCode: postalCode
+            };
+        }
+
+        function normalizeMalaysiaStateForShelterCreate(state) {
+            const value = (state || '').toLowerCase();
+
+            const map = {
+                'johor': 'Johor',
+                'kedah': 'Kedah',
+                'kelantan': 'Kelantan',
+                'melaka': 'Melaka',
+                'malacca': 'Melaka',
+                'negeri sembilan': 'Negeri Sembilan',
+                'pahang': 'Pahang',
+                'perak': 'Perak',
+                'perlis': 'Perlis',
+                'pulau pinang': 'Pulau Pinang',
+                'penang': 'Pulau Pinang',
+                'sabah': 'Sabah',
+                'sarawak': 'Sarawak',
+                'selangor': 'Selangor',
+                'terengganu': 'Terengganu',
+                'kuala lumpur': 'Kuala Lumpur',
+                'federal territory of kuala lumpur': 'Kuala Lumpur',
+                'wilayah persekutuan kuala lumpur': 'Kuala Lumpur',
+                'labuan': 'Labuan',
+                'putrajaya': 'Putrajaya',
+                'federal territory of putrajaya': 'Putrajaya',
+                'wilayah persekutuan putrajaya': 'Putrajaya'
+            };
+
+            return map[value] || state;
+        }
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async
+                defer
+                src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initShelterCreateMap">
+        </script>
+    }
+    else
+    {
+        <script>
+            console.error('Google Maps API key is missing. Shelter create map will not load.');
+        </script>
+    }
+}

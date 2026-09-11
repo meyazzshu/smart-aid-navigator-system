@@ -1,0 +1,19 @@
+@model SmartAidNavigator.Web.ViewModels.DependentUpsertVm
+@{
+    ViewData["Title"] = "Edit Dependent";
+}
+
+<h2>Edit Dependent</h2>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="RelationshipId" />
+    <input type="hidden" asp-for="PersonId" />
+    <partial name="_DependentFormFields" model="Model" />
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-secondary" asp-action="Index">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

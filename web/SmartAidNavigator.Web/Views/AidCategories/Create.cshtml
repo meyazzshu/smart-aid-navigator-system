@@ -1,0 +1,34 @@
+@model SmartAidNavigator.Web.Models.AidCategory
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<div class="app-page-header">
+    <h2 class="page-title"><i class="fa-solid fa-tag me-2"></i>New Aid Category</h2>
+    <a class="btn btn-secondary" asp-action="Index"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+</div>
+
+<div class="app-form-card">
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Category Name</label>
+                    <input class="form-control" asp-for="CategoryName" placeholder="Enter category name" />
+                    <span class="text-danger" asp-validation-for="CategoryName"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1"></i>Save</button>
+                    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

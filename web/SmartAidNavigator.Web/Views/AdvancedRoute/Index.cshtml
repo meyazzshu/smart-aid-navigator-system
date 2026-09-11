@@ -1,0 +1,81 @@
+@* @model List<SmartAidNavigator.Web.Models.DeliveryRoute> *@
+
+@* @{ *@
+@*     ViewData["Title"] = "Advanced Routes"; *@
+@* } *@
+
+@* <div class="app-page-header"> *@
+@*     <h2 class="page-title"><i class="fa-solid fa-route me-2"></i>Advanced Routes</h2> *@
+@*     <a asp-action="Generate" class="btn btn-primary"> *@
+@*         <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Generate Advanced Route *@
+@*     </a> *@
+@* </div> *@
+
+@* <div class="row g-3 mb-4"> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon blue"><i class="fa-solid fa-route"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value">@Model.Count</div> *@
+@*                 <div class="stat-card-label">Routes</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@*     <div class="col-6 col-md-3"> *@
+@*         <div class="stat-card"> *@
+@*             <div class="stat-card-icon green"><i class="fa-solid fa-location-dot"></i></div> *@
+@*             <div> *@
+@*                 <div class="stat-card-value">@Model.Sum(r => r.Stops?.Count ?? 0)</div> *@
+@*                 <div class="stat-card-label">Total Stops</div> *@
+@*             </div> *@
+@*         </div> *@
+@*     </div> *@
+@* </div> *@
+
+@* @if (!Model.Any()) *@
+@* { *@
+@*     <div class="alert alert-info"><i class="fa-solid fa-circle-info me-2"></i>No routes generated yet.</div> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <div class="card"> *@
+@*         <div class="card-header"><i class="fa-solid fa-list me-2"></i>All Advanced Routes</div> *@
+@*         <div class="card-body p-0"> *@
+@*             <table class="table table-hover mb-0"> *@
+@*                 <thead> *@
+@*                     <tr> *@
+@*                         <th><i class="fa-solid fa-hashtag me-1"></i>Route ID</th> *@
+@*                         <th><i class="fa-solid fa-microchip me-1"></i>Algorithm</th> *@
+@*                         <th><i class="fa-solid fa-road me-1"></i>Distance</th> *@
+@*                         <th><i class="fa-solid fa-clock me-1"></i>ETA</th> *@
+@*                         <th><i class="fa-solid fa-calendar me-1"></i>Created</th> *@
+@*                         <th><i class="fa-solid fa-map-pin me-1"></i>Stops</th> *@
+@*                     </tr> *@
+@*                 </thead> *@
+@*                 <tbody> *@
+@*                     @foreach (var route in Model) *@
+@*                     { *@
+@*                         <tr> *@
+@*                             <td><strong>#@route.RouteId</strong></td> *@
+@*                             <td><span class="badge bg-secondary">@route.Algorithm</span></td> *@
+@*                             <td>@route.TotalDistanceKm km</td> *@
+@*                             <td>@route.TotalEtaMinutes min</td> *@
+@*                             <td class="text-muted small">@route.CreatedAt.ToString("dd MMM yyyy HH:mm")</td> *@
+@*                             <td> *@
+@*                                 <ol class="mb-0 ps-3"> *@
+@*                                     @foreach (var stop in route.Stops.OrderBy(x => x.StopOrder)) *@
+@*                                     { *@
+@*                                         <li class="small"> *@
+@*                                             <strong>@(stop.Shelter?.ShelterName ?? "Unknown")</strong> *@
+@*                                             — @stop.DistanceFromPrevKm km / @stop.EtaFromPrevMinutes min *@
+@*                                         </li> *@
+@*                                     } *@
+@*                                 </ol> *@
+@*                             </td> *@
+@*                         </tr> *@
+@*                     } *@
+@*                 </tbody> *@
+@*             </table> *@
+@*         </div> *@
+@*     </div> *@
+@* } *@

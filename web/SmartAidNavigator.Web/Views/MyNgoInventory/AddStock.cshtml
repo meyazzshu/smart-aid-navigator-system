@@ -1,0 +1,330 @@
+﻿@model SmartAidNavigator.Web.ViewModels.MyNgoAddStockVm
+
+@{
+    ViewData["Title"] = "Add NGO Stock";
+
+    var categories = Model.Items
+        .Select(x => x.CategoryName)
+        .Distinct()
+        .OrderBy(x => x)
+        .ToList();
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-plus me-2"></i>Add Stock
+        </h2>
+        <p class="text-muted mb-0">
+            Add stock amount for existing aid items under @Model.NgoName.
+        </p>
+    </div>
+
+    <a asp-controller="MyNgoInventory" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<form asp-action="AddStock" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fa-solid fa-filter me-2 text-primary"></i>Find Items
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">
+                        <i class="fa-solid fa-magnifying-glass me-1 text-primary"></i>Search Item
+                    </label>
+                    <input type="text"
+                           id="stockItemSearch"
+                           class="form-control"
+                           placeholder="Search item name, category, unit..." />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">
+                        <i class="fa-solid fa-tags me-1 text-primary"></i>Category
+                    </label>
+                    <select id="stockCategoryFilter" class="form-select">
+                        <option value="">All Categories</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold invisible">Clear</label>
+                    <button type="button" id="clearStockFiltersBtn" class="btn btn-outline-secondary w-100">
+                        Clear
+                    </button>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Note" class="form-label fw-semibold">
+                        <i class="fa-solid fa-note-sticky me-1 text-primary"></i>Stock Note
+                    </label>
+                    <textarea asp-for="Note"
+                              class="form-control"
+                              rows="2"
+                              placeholder="Example: Stock added from supplier / donation / warehouse update..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="add-stock-toolbar mb-3">
+        <div class="text-muted small">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Use + and - to set the amount you want to add. Items with 0 will not be saved.
+        </div>
+
+        <div class="fw-semibold">
+            Selected Total: <span id="selectedStockTotal">0</span>
+        </div>
+    </div>
+
+    @if (!Model.Items.Any())
+    {
+        <div class="alert alert-info">
+            <i class="fa-solid fa-circle-info me-1"></i>No active aid items found.
+        </div>
+    }
+    else
+    {
+        <div class="add-stock-grid" id="addStockGrid">
+            @for (var i = 0; i < Model.Items.Count; i++)
+            {
+                var item = Model.Items[i];
+                var searchText = $"{item.ItemName} {item.CategoryName} {item.Unit}".ToLower();
+
+                <div class="add-stock-card"
+                     data-search="@searchText"
+                     data-category="@item.CategoryName">
+
+                    <input type="hidden" name="Items[@i].ItemId" value="@item.ItemId" />
+                    <input type="hidden" name="Items[@i].ItemName" value="@item.ItemName" />
+                    <input type="hidden" name="Items[@i].CategoryName" value="@item.CategoryName" />
+                    <input type="hidden" name="Items[@i].Unit" value="@item.Unit" />
+                    <input type="hidden" name="Items[@i].CurrentQuantity" value="@item.CurrentQuantity" />
+                    <input type="hidden" name="Items[@i].MinimumLevel" value="@item.MinimumLevel" />
+
+                    <div class="add-stock-card-top">
+                        <div class="add-stock-icon">
+                            <i class="fa-solid fa-box"></i>
+                        </div>
+
+                        <div class="add-stock-main">
+                            <h5>@item.ItemName</h5>
+                            <div class="text-muted small">
+                                @item.CategoryName
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="add-stock-meta">
+                        <span>
+                            <i class="fa-solid fa-warehouse me-1"></i>
+                            Current: <strong>@item.CurrentQuantity</strong> @item.Unit
+                        </span>
+
+                        <span>
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            Min: <strong>@item.MinimumLevel</strong>
+                        </span>
+                    </div>
+
+                    <div class="add-stock-counter">
+                        <button type="button" class="btn btn-outline-secondary stock-minus-btn">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+
+                        <input name="Items[@i].AddQuantity"
+                               value="0"
+                               type="number"
+                               min="0"
+                               class="form-control stock-qty-input"
+                               data-unit="@item.Unit" />
+
+                        <button type="button" class="btn btn-outline-primary stock-plus-btn">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <div class="add-stock-preview small text-muted">
+                        New total:
+                        <strong class="new-stock-total">@item.CurrentQuantity</strong>
+                        @item.Unit
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="alert alert-warning d-none mt-3" id="noStockItemsResult">
+            <i class="fa-solid fa-search me-1"></i>No matching items found.
+        </div>
+    }
+
+    <div class="sticky-stock-save-bar">
+        <div>
+            <div class="fw-semibold">Ready to update NGO stock?</div>
+            <div class="text-muted small">Only items with quantity more than 0 will be added.</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Index" class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk me-1"></i>Save Stock
+            </button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('stockItemSearch');
+            const categoryFilter = document.getElementById('stockCategoryFilter');
+            const clearBtn = document.getElementById('clearStockFiltersBtn');
+            const cards = Array.from(document.querySelectorAll('.add-stock-card'));
+            const noResult = document.getElementById('noStockItemsResult');
+            const selectedTotal = document.getElementById('selectedStockTotal');
+
+            function updateCardTotal(card) {
+                const input = card.querySelector('.stock-qty-input');
+                const newTotalEl = card.querySelector('.new-stock-total');
+
+                const currentInput = card.querySelector('input[name$=".CurrentQuantity"]');
+                const current = parseInt(currentInput?.value || '0', 10);
+                const addQty = Math.max(parseInt(input?.value || '0', 10), 0);
+
+                if (input) {
+                    input.value = addQty;
+                }
+
+                if (newTotalEl) {
+                    newTotalEl.textContent = current + addQty;
+                }
+
+                card.classList.toggle('selected', addQty > 0);
+            }
+
+            function updateSelectedTotal() {
+                let total = 0;
+
+                cards.forEach(card => {
+                    const input = card.querySelector('.stock-qty-input');
+                    total += Math.max(parseInt(input?.value || '0', 10), 0);
+                });
+
+                if (selectedTotal) {
+                    selectedTotal.textContent = total;
+                }
+            }
+
+            function refreshAllTotals() {
+                cards.forEach(updateCardTotal);
+                updateSelectedTotal();
+            }
+
+            function filterCards() {
+                const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const category = categoryFilter ? categoryFilter.value : '';
+
+                let visibleCount = 0;
+
+                cards.forEach(card => {
+                    const text = card.dataset.search || '';
+                    const cardCategory = card.dataset.category || '';
+
+                    const matchesSearch = text.includes(query);
+                    const matchesCategory = !category || cardCategory === category;
+
+                    const visible = matchesSearch && matchesCategory;
+
+                    card.classList.toggle('d-none', !visible);
+
+                    if (visible) {
+                        visibleCount++;
+                    }
+                });
+
+                if (noResult) {
+                    noResult.classList.toggle('d-none', visibleCount > 0);
+                }
+            }
+
+            cards.forEach(card => {
+                const minusBtn = card.querySelector('.stock-minus-btn');
+                const plusBtn = card.querySelector('.stock-plus-btn');
+                const input = card.querySelector('.stock-qty-input');
+
+                if (minusBtn) {
+                    minusBtn.addEventListener('click', function () {
+                        const current = Math.max(parseInt(input.value || '0', 10), 0);
+                        input.value = Math.max(current - 1, 0);
+                        updateCardTotal(card);
+                        updateSelectedTotal();
+                    });
+                }
+
+                if (plusBtn) {
+                    plusBtn.addEventListener('click', function () {
+                        const current = Math.max(parseInt(input.value || '0', 10), 0);
+                        input.value = current + 1;
+                        updateCardTotal(card);
+                        updateSelectedTotal();
+                    });
+                }
+
+                if (input) {
+                    input.addEventListener('input', function () {
+                        updateCardTotal(card);
+                        updateSelectedTotal();
+                    });
+                }
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterCards);
+            }
+
+            if (categoryFilter) {
+                categoryFilter.addEventListener('change', filterCards);
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (searchInput) searchInput.value = '';
+                    if (categoryFilter) categoryFilter.value = '';
+                    filterCards();
+                });
+            }
+
+            refreshAllTotals();
+            filterCards();
+        });
+    </script>
+}

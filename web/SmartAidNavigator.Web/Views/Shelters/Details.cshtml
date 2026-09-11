@@ -1,0 +1,345 @@
+﻿@model SmartAidNavigator.Web.Models.Shelter
+
+@{
+    ViewData["Title"] = "Shelter Details";
+
+    var fullAddress = string.Join(", ", new[]
+    {
+        Model.AddressLine,
+        Model.City,
+        Model.State,
+        Model.PostalCode
+    }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+    var hasLocation = Model.Latitude.HasValue && Model.Longitude.HasValue;
+
+    var remainingCapacity = Model.Capacity.HasValue
+        ? Math.Max(Model.Capacity.Value - Model.CurrentOccupancy, 0)
+        : 0;
+
+    var occupancyPercent = Model.Capacity.HasValue && Model.Capacity.Value > 0
+        ? Math.Min((Model.CurrentOccupancy * 100.0) / Model.Capacity.Value, 100)
+        : 0;
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-house-circle-check me-2"></i>Shelter Details
+        </h2>
+        <p class="text-muted mb-0">
+            View shelter profile, NGO partner, capacity, contact details, and map location.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.ShelterId" class="btn btn-warning">
+            <i class="fa-solid fa-pen me-1"></i>Edit
+        </a>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>Back
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fa-solid fa-circle-check me-1"></i>@TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i>@TempData["Error"]
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="org-detail-avatar mx-auto mb-3">
+                    <i class="fa-solid fa-house-medical"></i>
+                </div>
+
+                <h4 class="mb-1">@Model.ShelterName</h4>
+
+                <div class="text-muted mb-3">
+                    @(Model.Ngo?.NgoName ?? "No NGO Partner")
+                </div>
+
+                <div class="mb-3">
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success">
+                            <i class="fa-solid fa-circle-check me-1"></i>Active
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">
+                            <i class="fa-solid fa-circle-xmark me-1"></i>Inactive / Pending
+                        </span>
+                    }
+                </div>
+
+                <div class="staff-edit-mini-info">
+                    <div>
+                        <i class="fa-solid fa-hashtag me-2 text-primary"></i>
+                        <span>Shelter ID: #@Model.ShelterId</span>
+                    </div>
+
+                    <div>
+                        <i class="fa-solid fa-building-ngo me-2 text-primary"></i>
+                        <span>@(Model.Ngo?.NgoName ?? "No NGO Partner")</span>
+                    </div>
+
+                    <div>
+                        <i class="fa-solid fa-city me-2 text-primary"></i>
+                        <span>@(Model.City ?? "No city saved")</span>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.ShelterId" class="btn btn-warning">
+                        <i class="fa-solid fa-pen me-1"></i>Edit Shelter
+                    </a>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Email))
+                    {
+                        <a href="mailto:@Model.Email" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-envelope me-1"></i>Email Shelter
+                        </a>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                    {
+                        <a href="tel:@Model.Phone" class="btn btn-outline-secondary">
+                            <i class="fa-solid fa-phone me-1"></i>Call Shelter
+                        </a>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-card-icon blue">
+                        <i class="fa-solid fa-people-roof"></i>
+                    </div>
+                    <div>
+                        <div class="stat-card-value">@(Model.Capacity?.ToString() ?? "-")</div>
+                        <div class="stat-card-label">Capacity</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-card-icon orange">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="stat-card-value">@Model.CurrentOccupancy</div>
+                        <div class="stat-card-label">Current Occupancy</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-card-icon green">
+                        <i class="fa-solid fa-bed"></i>
+                    </div>
+                    <div>
+                        <div class="stat-card-value">@(Model.Capacity.HasValue ? remainingCapacity.ToString() : "-")</div>
+                        <div class="stat-card-label">Remaining</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-circle-info me-2 text-primary"></i>Shelter Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Shelter ID</div>
+                        <div class="detail-value">#@Model.ShelterId</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Created At</div>
+                        <div class="detail-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">NGO Partner</div>
+                        <div class="detail-value">@(Model.Ngo?.NgoName ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>Inactive / Pending
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value">@(Model.Phone ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value">@(Model.Email ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Capacity</div>
+                        <div class="detail-value">@(Model.Capacity?.ToString() ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="detail-label">Current Occupancy</div>
+                        <div class="detail-value">@Model.CurrentOccupancy</div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="detail-label">Occupancy Usage</div>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar"
+                                 role="progressbar"
+                                 style="width: @occupancyPercent.ToString("0.##")%;"
+                                 aria-valuenow="@occupancyPercent.ToString("0")"
+                                 aria-valuemin="0"
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            @occupancyPercent.ToString("0.##")% occupied
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fa-solid fa-location-dot me-2 text-primary"></i>Location Information
+            </div>
+
+            <div class="card-body">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value">@(string.IsNullOrWhiteSpace(fullAddress) ? "-" : fullAddress)</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="detail-label">Latitude</div>
+                        <div class="detail-value">@(Model.Latitude?.ToString() ?? "-")</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="detail-label">Longitude</div>
+                        <div class="detail-value">@(Model.Longitude?.ToString() ?? "-")</div>
+                    </div>
+                </div>
+
+                @if (hasLocation)
+                {
+                    <div id="shelterDetailsMap"
+                         class="org-details-map"
+                         data-lat="@Model.Latitude"
+                         data-lng="@Model.Longitude"
+                         data-title="@Model.ShelterName">
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning mb-0">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        No latitude and longitude saved for this shelter. Edit this shelter and select a Google location.
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @if (hasLocation && !string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script>
+            function initShelterDetailsMap() {
+                const mapEl = document.getElementById('shelterDetailsMap');
+
+                if (!mapEl) {
+                    return;
+                }
+
+                const lat = parseFloat(mapEl.dataset.lat);
+                const lng = parseFloat(mapEl.dataset.lng);
+                const title = mapEl.dataset.title || 'Shelter Location';
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    return;
+                }
+
+                const position = {
+                    lat: lat,
+                    lng: lng
+                };
+
+                const map = new google.maps.Map(mapEl, {
+                    center: position,
+                    zoom: 16,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: true
+                });
+
+                new google.maps.Marker({
+                    map: map,
+                    position: position,
+                    title: title
+                });
+            }
+        </script>
+
+        <script async
+                defer
+                src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&callback=initShelterDetailsMap">
+        </script>
+    }
+    else if (hasLocation)
+    {
+        <script>
+            console.error('Google Maps API key is missing. Shelter details map will not load.');
+        </script>
+    }
+}

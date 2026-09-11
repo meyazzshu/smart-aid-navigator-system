@@ -1,0 +1,71 @@
+﻿@model SmartAidNavigator.Web.Models.Shelter
+@{
+    ViewData["Title"] = "Create Shelter";
+    var ngos = ViewBag.Ngos as List<SmartAidNavigator.Web.Models.Ngo> ?? new();
+}
+
+<h2>Create Shelter</h2>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Shelter Name</label>
+        <input class="form-control" asp-for="ShelterName" />
+        <span class="text-danger" asp-validation-for="ShelterName"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">NGO (optional)</label>
+        <select class="form-select" asp-for="NgoId">
+            <option value="">(None)</option>
+            @foreach (var n in ngos)
+            {
+                <option value="@n.NgoId">@n.NgoName</option>
+            }
+        </select>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">City</label>
+            <input class="form-control" asp-for="City" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">State</label>
+            <input class="form-control" asp-for="State" />
+        </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Postal Code</label>
+            <input class="form-control" asp-for="PostalCode" />
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Address</label>
+        <input class="form-control" asp-for="AddressLine" />
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Latitude</label>
+            <input class="form-control" asp-for="Latitude" />
+        </div>
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Longitude</label>
+            <input class="form-control" asp-for="Longitude" />
+        </div>
+    </div>
+
+    <div class="form-check mb-3">
+        <input class="form-check-input" asp-for="IsActive" />
+        <label class="form-check-label">Active</label>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-secondary" asp-action="Index">Back</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,49 @@
+﻿@model SmartAidNavigator.Web.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="app-form-card card">
+    <div class="card-body">
+        <h2 class="page-title mb-3">Register</h2>
+
+        <form method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input class="form-control" asp-for="FullName" />
+                <span class="text-danger" asp-validation-for="FullName"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input class="form-control" asp-for="Email" />
+                <span class="text-danger" asp-validation-for="Email"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input class="form-control" asp-for="Password" type="password" />
+                <span class="text-danger" asp-validation-for="Password"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Register As</label>
+                <select class="form-select" asp-for="RoleName">
+                    <option value="">-- Select Role --</option>
+                    <option value="NGO_STAFF">NGO Staff</option>
+                    <option value="SHELTER_MANAGER">Shelter Manager</option>
+                </select>
+                <span class="text-danger" asp-validation-for="RoleName"></span>
+            </div>
+
+            <button class="btn btn-primary" type="submit">Create Account</button>
+            <a class="btn btn-secondary" asp-controller="Account" asp-action="Login">Back to Login</a>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

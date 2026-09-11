@@ -1,0 +1,582 @@
+﻿@using SmartAidNavigator.Web.Helpers
+@{
+    var roles = Context.Session.GetString(SessionKeys.Roles) ?? "";
+    var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString(SessionKeys.UserId));
+
+    var isAdmin = roles.Contains("ADMIN");
+    var isNgo = roles.Contains("NGO_STAFF");
+    var isShelterMgr = roles.Contains("SHELTER_MANAGER");
+
+    var currentCtrl = (ViewContext.RouteData.Values["controller"]?.ToString() ?? "").ToLowerInvariant();
+    var currentAct = (ViewContext.RouteData.Values["action"]?.ToString() ?? "").ToLowerInvariant();
+
+    // Login and organization registration pages show title inside their own card/page.
+    var isAuthPage = currentCtrl is "account" or "register" or "organizationregister";
+
+    var userName = Context.Session.GetString(SessionKeys.FullName) ?? "User";
+    var userEmail = Context.Session.GetString(SessionKeys.Email) ?? "";
+
+    var nameParts = userName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = nameParts.Length >= 2
+        ? $"{char.ToUpper(nameParts[0][0])}{char.ToUpper(nameParts[^1][0])}"
+        : (userName.Length > 0 ? $"{char.ToUpper(userName[0])}" : "U");
+
+    var roleLabel = isAdmin ? "Administrator"
+        : isNgo ? "NGO Staff"
+        : isShelterMgr ? "Shelter Manager"
+        : "User";
+
+    string NavActive(string ctrl, string act = "")
+    {
+        var match = currentCtrl == ctrl.ToLowerInvariant();
+
+        if (!string.IsNullOrEmpty(act))
+        {
+            match = match && currentAct == act.ToLowerInvariant();
+        }
+
+        return match ? "active" : "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - SmartAidNavigator</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SmartAidNavigator.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body class="app-has-sidebar">
+
+    <aside class="app-sidebar">
+        <div class="app-sidebar-brand">
+            <a asp-area="" asp-controller="Home" asp-action="Index">
+                <i class="fa-solid fa-circle-nodes fa-lg"></i>
+                <span>SmartAid Navigator</span>
+            </a>
+        </div>
+
+        <nav class="app-sidebar-nav">
+
+            <!-- GENERAL -->
+            <div class="app-sidebar-section-label">General</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @NavActive("Home", "Index")"
+                       asp-controller="Home"
+                       asp-action="Index">
+                        <i class="fa-solid fa-house"></i>Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link @NavActive("Home", "Privacy")"
+                       asp-controller="Home"
+                       asp-action="Privacy">
+                        <i class="fa-solid fa-shield-halved"></i>Privacy
+                    </a>
+                </li>
+
+                @if (!isLoggedIn)
+                {
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Account", "Login")"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            <i class="fa-solid fa-right-to-bracket"></i>Login
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            @if (!isLoggedIn)
+            {
+                <!-- ORGANIZATION REGISTRATION -->
+                <div class="app-sidebar-section-label">Organization Registration</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("OrganizationRegister", "Ngo")"
+                           asp-controller="OrganizationRegister"
+                           asp-action="Ngo">
+                            <i class="fa-solid fa-building-ngo"></i>Register NGO
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("OrganizationRegister", "Shelter")"
+                           asp-controller="OrganizationRegister"
+                           asp-action="Shelter">
+                            <i class="fa-solid fa-house-medical"></i>Register Shelter
+                        </a>
+                    </li>
+                </ul>
+            }
+
+            @if (isLoggedIn && isAdmin)
+            {
+                <!-- ADMIN DASHBOARD -->
+                <div class="app-sidebar-section-label">Admin Dashboard</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Admin")"
+                           asp-controller="Admin"
+                           asp-action="Dashboard">
+                            <i class="fa-solid fa-gauge"></i>Dashboard
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- USER & STAFF MANAGEMENT -->
+                <div class="app-sidebar-section-label">User & Staff Management</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Users")"
+                           asp-controller="Users"
+                           asp-action="Index">
+                            <i class="fa-solid fa-users"></i>User Accounts
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("StaffManagement", "AdminNgoStaff")"
+                           asp-controller="StaffManagement"
+                           asp-action="AdminNgoStaff">
+                            <i class="fa-solid fa-user-tie"></i>NGO Staff
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("StaffManagement", "AdminShelterManagers")"
+                           asp-controller="StaffManagement"
+                           asp-action="AdminShelterManagers">
+                            <i class="fa-solid fa-user-shield"></i>Shelter Managers
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ORGANIZATION MANAGEMENT -->
+                <div class="app-sidebar-section-label">Organization Management</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Ngos")"
+                           asp-controller="Ngos"
+                           asp-action="Index">
+                            <i class="fa-solid fa-building-ngo"></i>NGO Directory
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Shelters")"
+                           asp-controller="Shelters"
+                           asp-action="Index">
+                            <i class="fa-solid fa-house-circle-check"></i>Shelters
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- AID CATALOG -->
+                <div class="app-sidebar-section-label">Aid Catalog</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("AidCategories")"
+                           asp-controller="AidCategories"
+                           asp-action="Index">
+                            <i class="fa-solid fa-tags"></i>Aid Categories
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("AidItems")"
+                           asp-controller="AidItems"
+                           asp-action="Index">
+                            <i class="fa-solid fa-boxes-stacked"></i>Aid Items
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- ADMIN REPORTS -->
+                <div class="app-sidebar-section-label">Reports</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("AdminReports")"
+                           asp-controller="AdminReports"
+                           asp-action="Index">
+                            <i class="fa-solid fa-chart-pie"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+            }
+
+
+
+            @if (isLoggedIn && isNgo)
+            {
+                <!-- NGO DASHBOARD -->
+                <div class="app-sidebar-section-label">NGO Dashboard</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("NgoStaff")"
+                           asp-controller="NgoStaff"
+                           asp-action="Dashboard">
+                            <i class="fa-solid fa-gauge"></i>Dashboard
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- DELIVERY OPERATIONS -->
+                <div class="app-sidebar-section-label">Delivery Operations</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Delivery")"
+                           asp-controller="Delivery"
+                           asp-action="Index">
+                            <i class="fa-solid fa-truck"></i>Deliveries
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("DeliveryGroups")"
+                           asp-controller="DeliveryGroups"
+                           asp-action="Index">
+                            <i class="fa-solid fa-layer-group"></i>Group Deliveries
+                        </a>
+                    </li>
+
+                    @* <li class="nav-item"> *@
+                    @*     <a class="nav-link @NavActive("Route")" *@
+                    @*        asp-controller="Route" *@
+                    @*        asp-action="Index"> *@
+                    @*         <i class="fa-solid fa-route"></i>Routes *@
+                    @*     </a> *@
+                    @* </li> *@
+                    @* <li class="nav-item"> *@
+                    @*     <a class="nav-link @NavActive("TempDijkstra")" *@
+                    @*        asp-controller="TempDijkstra" *@
+                    @*        asp-action="Index"> *@
+                    @*         <i class="fa-solid fa-diagram-project"></i>Dijkstra Prototype *@
+                    @*     </a> *@
+                    @* </li> *@
+
+                    @* <li class="nav-item"> *@
+                    @*     <a class="nav-link @NavActive("AdvancedRoute")" *@
+                    @*        asp-controller="AdvancedRoute" *@
+                    @*        asp-action="Index"> *@
+                    @*         <i class="fa-solid fa-code-branch"></i>Route Optimization *@
+                    @*     </a> *@
+                    @* </li> *@
+                </ul>
+
+                <!-- NGO AID & INVENTORY -->
+                <div class="app-sidebar-section-label">NGO Aid & Inventory</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyNgoInventory")"
+                           asp-controller="MyNgoInventory"
+                           asp-action="Index">
+                            <i class="fa-solid fa-warehouse"></i>Inventory
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("NgoBeneficiaryNeeds")"
+                           asp-controller="NgoBeneficiaryNeeds"
+                           asp-action="Index">
+                            <i class="fa-solid fa-hand-holding-heart"></i>Beneficiary Needs
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- NGO DONATIONS -->
+                <div class="app-sidebar-section-label">NGO Donations</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyNgoDonations")"
+                           asp-controller="MyNgoDonations"
+                           asp-action="Index">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>Donations
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- NGO REPORTS -->
+                <div class="app-sidebar-section-label">Reports</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("NgoReports")"
+                           asp-controller="NgoReports"
+                           asp-action="Index">
+                            <i class="fa-solid fa-chart-pie"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- NGO STAFF MANAGEMENT -->
+                <div class="app-sidebar-section-label">NGO Staff Management</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("StaffManagement", "MyNgoStaff")"
+                           asp-controller="StaffManagement"
+                           asp-action="MyNgoStaff">
+                            <i class="fa-solid fa-user-tie"></i>Manage NGO Staff
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- NGO PROFILE -->
+                <div class="app-sidebar-section-label">NGO Profile</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyNgo", "Details")"
+                           asp-controller="MyNgo"
+                           asp-action="Details">
+                            <i class="fa-solid fa-id-card"></i>My NGO Profile
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyNgo", "Edit")"
+                           asp-controller="MyNgo"
+                           asp-action="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>Edit My NGO
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("NgoOnboarding")"
+                           asp-controller="NgoOnboarding"
+                           asp-action="Create">
+                            <i class="fa-solid fa-circle-plus"></i>NGO Onboarding
+                        </a>
+                    </li>
+                </ul>
+            }
+
+            @if (isLoggedIn && isShelterMgr)
+            {
+                <!-- SHELTER DASHBOARD -->
+                <div class="app-sidebar-section-label">Shelter Dashboard</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterManager")"
+                           asp-controller="ShelterManager"
+                           asp-action="Dashboard">
+                            <i class="fa-solid fa-gauge"></i>Dashboard
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- SHELTER OPERATIONS -->
+                <div class="app-sidebar-section-label">Shelter Operations</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterInventory")"
+                           asp-controller="ShelterInventory"
+                           asp-action="Index">
+                            <i class="fa-solid fa-warehouse"></i>Inventory
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("Beneficiaries")"
+                           asp-controller="Beneficiaries"
+                           asp-action="Index">
+                            <i class="fa-solid fa-people-group"></i>Beneficiaries
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("BeneficiaryNeeds")"
+                           asp-controller="BeneficiaryNeeds"
+                           asp-action="Index">
+                            <i class="fa-solid fa-hand-holding-heart"></i>Beneficiary Needs
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterRequests")"
+                           asp-controller="ShelterRequests"
+                           asp-action="Index">
+                            <i class="fa-solid fa-person-shelter"></i>Shelter Requests
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterIncomingDeliveries")"
+                           asp-controller="ShelterIncomingDeliveries"
+                           asp-action="Index">
+                            <i class="fa-solid fa-truck-fast"></i>Incoming Deliveries
+                        </a>
+                    </li>
+
+                </ul>
+
+                <!-- SHELTER DONATIONS -->
+                <div class="app-sidebar-section-label">Shelter Donations</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterDonations")"
+                           asp-controller="ShelterDonations"
+                           asp-action="Index">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>Donations
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- SHELTER REPORTS -->
+                <div class="app-sidebar-section-label">Reports</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterReports")"
+                           asp-controller="ShelterReports"
+                           asp-action="Index">
+                            <i class="fa-solid fa-chart-pie"></i>Reports
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- SHELTER STAFF MANAGEMENT -->
+                <div class="app-sidebar-section-label">Shelter Staff Management</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("StaffManagement", "MyShelterManagers")"
+                           asp-controller="StaffManagement"
+                           asp-action="MyShelterManagers">
+                            <i class="fa-solid fa-user-shield"></i>Manage Shelter Staff
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- SHELTER PROFILE -->
+                <div class="app-sidebar-section-label">Shelter Profile</div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyShelter", "Details")"
+                           asp-controller="MyShelter"
+                           asp-action="Details">
+                            <i class="fa-solid fa-id-card"></i>My Shelter Profile
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("MyShelter", "Edit")"
+                           asp-controller="MyShelter"
+                           asp-action="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>Edit My Shelter
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link @NavActive("ShelterOnboarding")"
+                           asp-controller="ShelterOnboarding"
+                           asp-action="Create">
+                            <i class="fa-solid fa-circle-plus"></i>Shelter Onboarding
+                        </a>
+                    </li>
+                </ul>
+            }
+
+        </nav>
+    </aside>
+
+    <div class="app-main-area">
+        <header class="app-topbar">
+            @if (!isAuthPage)
+            {
+                <div class="app-topbar-title">@ViewData["Title"]</div>
+            }
+            else
+            {
+                <div></div>
+            }
+
+            <div class="app-topbar-end">
+                @if (isLoggedIn)
+                {
+                    <div class="dropdown">
+                        <button class="app-user-btn"
+                                type="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                aria-label="User menu">
+                            <div class="app-user-avatar">@initials</div>
+
+                            <div class="app-user-details d-none d-lg-flex">
+                                <span class="app-user-name">@userName</span>
+                                <span class="app-user-email">@userEmail</span>
+                            </div>
+
+                            <i class="fa-solid fa-chevron-down app-user-caret d-none d-lg-block"></i>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end app-user-dropdown shadow-lg">
+                            <li>
+                                <div class="app-user-dropdown-header">
+                                    <div class="app-user-avatar app-user-avatar-lg">@initials</div>
+
+                                    <div>
+                                        <div class="app-user-dropdown-name">@userName</div>
+                                        <div class="app-user-dropdown-email">@userEmail</div>
+                                        <span class="badge app-user-role-badge mt-1">@roleLabel</span>
+                                    </div>
+                                </div>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-1" /></li>
+
+                            <li>
+                                <form asp-controller="Account"
+                                      asp-action="Logout"
+                                      method="post"
+                                      class="d-block">
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fa-solid fa-right-from-bracket me-2"></i>Logout
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </header>
+
+        <div class="app-content @(isAuthPage ? "app-content-auth" : "")">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+
+        <footer class="app-footer border-top">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span>
+                    <i class="fa-solid fa-circle-nodes me-1"></i>
+                    &copy; 2025 SmartAid Navigator &mdash; Coordinating Aid Across Malaysia
+                </span>
+
+                <span>
+                    <a asp-area=""
+                       asp-controller="Home"
+                       asp-action="Privacy">
+                        <i class="fa-solid fa-shield-halved me-1"></i>Privacy Policy
+                    </a>
+                </span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</body>
+</html>

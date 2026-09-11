@@ -1,0 +1,333 @@
+﻿@model SmartAidNavigator.Web.ViewModels.BeneficiaryUpsertVm
+
+@{
+    ViewData["Title"] = "Create Beneficiary";
+
+    var malaysiaStates = new[]
+    {
+        "Johor", "Kedah", "Kelantan", "Melaka", "Negeri Sembilan",
+        "Pahang", "Perak", "Perlis", "Pulau Pinang", "Sabah",
+        "Sarawak", "Selangor", "Terengganu", "Kuala Lumpur",
+        "Labuan", "Putrajaya"
+    };
+}
+
+<div class="app-page-header">
+    <div>
+        <h2 class="page-title">
+            <i class="fa-solid fa-user-plus me-2"></i>Create Beneficiary
+        </h2>
+        <p class="text-muted mb-0">
+            Register a new beneficiary with personal details and address information.
+        </p>
+    </div>
+
+    <a asp-action="Index" class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i>Back
+    </a>
+</div>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card staff-edit-summary-card">
+                <div class="card-body text-center">
+                    <div class="staff-detail-avatar mx-auto mb-3">
+                        <i class="fa-solid fa-circle-user"></i>
+                    </div>
+
+                    <h4 class="mb-1">New Beneficiary</h4>
+                    <div class="text-muted mb-3">Shelter beneficiary registration</div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fa-solid fa-user-plus me-1"></i>New Record
+                        </span>
+                    </div>
+
+                    <div class="staff-edit-mini-info">
+                        <div>
+                            <i class="fa-solid fa-id-card me-2 text-primary"></i>
+                            <span>Record personal details</span>
+                        </div>
+
+                        <div>
+                            <i class="fa-solid fa-location-dot me-2 text-primary"></i>
+                            <span>Use Google address search</span>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Create Beneficiary
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-user me-2 text-primary"></i>Basic Information
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FullName" class="form-label fw-semibold">
+                                <i class="fa-solid fa-signature me-1 text-primary"></i>Full Name
+                            </label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Phone" class="form-label fw-semibold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>Phone
+                            </label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="IcOrPassport" class="form-label fw-semibold">
+                                <i class="fa-solid fa-id-card me-1 text-primary"></i>IC / Passport
+                            </label>
+                            <input asp-for="IcOrPassport" class="form-control" />
+                            <span asp-validation-for="IcOrPassport" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Gender" class="form-label fw-semibold">
+                                <i class="fa-solid fa-venus-mars me-1 text-primary"></i>Gender
+                            </label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="">-- Select Gender --</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="DateOfBirth" class="form-label fw-semibold">
+                                <i class="fa-solid fa-cake-candles me-1 text-primary"></i>Date of Birth
+                            </label>
+                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Status" class="form-label fw-semibold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>Status
+                            </label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="ACTIVE">ACTIVE</option>
+                                <option value="DISCHARGED">DISCHARGED</option>
+                                <option value="TRANSFERRED">TRANSFERRED</option>
+                                <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fa-solid fa-location-dot me-2 text-primary"></i>Address Information
+                </div>
+
+                <div class="card-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Search and select an address from Google to auto-fill address, city, state, and postal code.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            <i class="fa-solid fa-magnifying-glass-location me-1 text-primary"></i>Search Location
+                        </label>
+                        <input type="text"
+                               id="beneficiaryCreateGoogleLocationSearch"
+                               class="form-control"
+                               placeholder="Search beneficiary address..." />
+                    </div>
+
+                    <div id="beneficiaryCreateMap" class="staff-edit-map mb-3"></div>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="AddressLine" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map-location-dot me-1 text-primary"></i>Address Line
+                            </label>
+                            <input asp-for="AddressLine" id="AddressLine" class="form-control" />
+                            <span asp-validation-for="AddressLine" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold">
+                                <i class="fa-solid fa-city me-1 text-primary"></i>City
+                            </label>
+                            <input asp-for="City" id="City" class="form-control" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold">
+                                <i class="fa-solid fa-map me-1 text-primary"></i>State
+                            </label>
+                            <select asp-for="State" id="State" class="form-select">
+                                <option value="">-- Select State --</option>
+                                @foreach (var state in malaysiaStates)
+                                {
+                                    <option value="@state">@state</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PostalCode" class="form-label fw-semibold">
+                                <i class="fa-solid fa-envelopes-bulk me-1 text-primary"></i>Postal Code
+                            </label>
+                            <input asp-for="PostalCode" id="PostalCode" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mb-3">
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Create Beneficiary
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function initBeneficiaryCreateAddressMap() {
+            const mapElement = document.getElementById('beneficiaryCreateMap');
+            const searchInput = document.getElementById('beneficiaryCreateGoogleLocationSearch');
+            const addressInput = document.getElementById('AddressLine');
+            const cityInput = document.getElementById('City');
+            const stateInput = document.getElementById('State');
+            const postalInput = document.getElementById('PostalCode');
+
+            if (!mapElement || !searchInput) return;
+
+            const defaultLocation = { lat: 3.1390, lng: 101.6869 };
+
+            const map = new google.maps.Map(mapElement, {
+                center: defaultLocation,
+                zoom: 12,
+                mapTypeControl: false,
+                streetViewControl: false,
+                fullscreenControl: true
+            });
+
+            const marker = new google.maps.Marker({
+                map: map,
+                position: defaultLocation
+            });
+
+            const autocomplete = new google.maps.places.Autocomplete(searchInput, {
+                componentRestrictions: { country: 'my' },
+                fields: ['address_components', 'formatted_address', 'geometry', 'name']
+            });
+
+            autocomplete.addListener('place_changed', function () {
+                const place = autocomplete.getPlace();
+
+                if (!place.geometry || !place.geometry.location) {
+                    alert('Selected location does not have map coordinates.');
+                    return;
+                }
+
+                map.setCenter(place.geometry.location);
+                map.setZoom(16);
+                marker.setPosition(place.geometry.location);
+
+                const parsed = parseBeneficiaryAddressComponents(place.address_components || []);
+
+                addressInput.value = place.formatted_address || place.name || '';
+                cityInput.value = parsed.city || '';
+                stateInput.value = normalizeMalaysiaState(parsed.state || '');
+                postalInput.value = parsed.postalCode || '';
+            });
+        }
+
+        function parseBeneficiaryAddressComponents(components) {
+            let city = '';
+            let state = '';
+            let postalCode = '';
+
+            components.forEach(function (component) {
+                const types = component.types || [];
+
+                if (types.includes('postal_code')) postalCode = component.long_name;
+
+                if (
+                    types.includes('locality') ||
+                    types.includes('postal_town') ||
+                    types.includes('administrative_area_level_2')
+                ) {
+                    if (!city) city = component.long_name;
+                }
+
+                if (types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            });
+
+            return { city, state, postalCode };
+        }
+
+        function normalizeMalaysiaState(state) {
+            const value = (state || '').toLowerCase();
+
+            const map = {
+                'johor': 'Johor',
+                'kedah': 'Kedah',
+                'kelantan': 'Kelantan',
+                'melaka': 'Melaka',
+                'malacca': 'Melaka',
+                'negeri sembilan': 'Negeri Sembilan',
+                'pahang': 'Pahang',
+                'perak': 'Perak',
+                'perlis': 'Perlis',
+                'pulau pinang': 'Pulau Pinang',
+                'penang': 'Pulau Pinang',
+                'sabah': 'Sabah',
+                'sarawak': 'Sarawak',
+                'selangor': 'Selangor',
+                'terengganu': 'Terengganu',
+                'kuala lumpur': 'Kuala Lumpur',
+                'wilayah persekutuan kuala lumpur': 'Kuala Lumpur',
+                'labuan': 'Labuan',
+                'putrajaya': 'Putrajaya'
+            };
+
+            return map[value] || state;
+        }
+    </script>
+
+    @if (!string.IsNullOrWhiteSpace(ViewBag.GoogleMapsApiKey as string))
+    {
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=@ViewBag.GoogleMapsApiKey&libraries=places&callback=initBeneficiaryCreateAddressMap"></script>
+    }
+}
